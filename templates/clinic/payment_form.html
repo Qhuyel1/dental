@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Cập nhật thanh toán{% else %}Ghi nhận thanh toán{% endif %}{% endblock %}
+{% block page_title %}{% if object %}Cập nhật thanh toán{% else %}Ghi nhận thanh toán{% endif %}{% endblock %}
+{% block page_subtitle %}{% if invoice %}<p class="page-subtitle">{{ invoice.invoice_code }} · Còn nợ {{ invoice.outstanding_amount|floatformat:0 }} VND</p>{% endif %}{% endblock %}
+
+{% block content %}
+    <form class="panel" method="post" novalidate>
+        {% csrf_token %}
+        <div class="panel-body">
+            <div class="form-grid">
+                {% include "includes/form_fields.html" %}
+            </div>
+            <div class="actions" style="margin-top: 22px;">
+                <button type="submit">Lưu</button>
+                <a class="button secondary" href="{% url 'clinic:invoice-detail' invoice.pk %}">Hủy</a>
+            </div>
+        </div>
+    </form>
+{% endblock %}

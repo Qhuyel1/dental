@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Thanh toán MoMo{% endblock %}
+{% block page_title %}Thanh toán MoMo{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">{{ invoice.invoice_code }} · Còn nợ {{ invoice.outstanding_amount|floatformat:0 }} VND</p>{% endblock %}
+
+{% block content %}
+    <div class="panel panel-body" style="margin-bottom: 16px;">
+        <div class="form-grid">
+            <div class="form-row">
+                <label>Bệnh nhân</label>
+                <p>{{ invoice.patient.full_name }} ({{ invoice.patient.patient_code }})</p>
+            </div>
+            <div class="form-row">
+                <label>Tổng hóa đơn</label>
+                <p>{{ invoice.total_amount|floatformat:0 }} VND</p>
+            </div>
+            <div class="form-row">
+                <label>Đã thanh toán</label>
+                <p>{{ invoice.paid_amount|floatformat:0 }} VND</p>
+            </div>
+            <div class="form-row">
+                <label>Còn nợ</label>
+                <p><strong>{{ invoice.outstanding_amount|floatformat:0 }} VND</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <form class="panel" method="post" novalidate>
+        {% csrf_token %}
+        <div class="panel-body">
+            <div class="form-grid">
+                {% include "includes/form_fields.html" %}
+            </div>
+            <div class="help-text" style="margin-top: 10px;">
+                Sau khi tạo giao dịch, hệ thống sẽ mở trang QR / đường dẫn thanh toán MoMo. Chỉ khi IPN từ MoMo xác nhận thành công thì hóa đơn mới được cộng tiền và mail biên nhận mới được gửi.
+            </div>
+            <div class="actions" style="margin-top: 22px;">
+                <button type="submit">Tạo giao dịch MoMo</button>
+                <a class="button secondary" href="{% url 'clinic:invoice-detail' invoice.pk %}">Hủy</a>
+            </div>
+        </div>
+    </form>
+{% endblock %}

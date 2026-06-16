@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Bảng giá{% endblock %}
+{% block page_title %}Thiết lập bảng giá dịch vụ{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <form class="filter-form" method="get">
+            <input class="form-control" type="text" name="q" value="{{ keyword }}" placeholder="Tìm tên bảng giá hoặc ghi chú">
+            <select name="status">
+                <option value="">Tất cả trạng thái</option>
+                <option value="active" {% if selected_status == "active" %}selected{% endif %}>Đang bật</option>
+                <option value="inactive" {% if selected_status == "inactive" %}selected{% endif %}>Ngưng</option>
+            </select>
+            <select name="apply_status">
+                <option value="">Tất cả thời gian</option>
+                <option value="current" {% if selected_apply_status == "current" %}selected{% endif %}>Đang hiệu lực</option>
+                <option value="upcoming" {% if selected_apply_status == "upcoming" %}selected{% endif %}>Sắp áp dụng</option>
+                <option value="expired" {% if selected_apply_status == "expired" %}selected{% endif %}>Đã hết hạn</option>
+            </select>
+            <button type="submit">Tìm kiếm</button>
+            {% if keyword or selected_status or selected_apply_status %}<a class="button secondary" href="{% url 'clinic:price-list-list' %}">Xóa lọc</a>{% endif %}
+        </form>
+        {% if perms.clinic.add_pricelist %}<a class="button" href="{% url 'clinic:price-list-create' %}">Thêm bảng giá</a>{% endif %}
+    </div>
+
+    <div class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tên bảng giá</th>
+                        <th>Thời gian áp dụng</th>
+                        <th>Số giá dịch vụ</th>
+                        <th>Trạng thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for price_list in price_lists %}
+                        <tr>
+                            <td>{{ price_list.name }}{% if price_list.note %}<br><span class="help-text">{{ price_list.note }}</span>{% endif %}</td>
+                            <td>
+                                {{ price_list.effective_from|date:"d/m/Y" }}
+                                {% if price_list.effective_to %} - {{ price_list.effective_to|date:"d/m/Y" }}{% endif %}
+                            </td>
+                            <td>{{ price_list.price_count }}</td>
+                            <td>
+                                {% if price_list.is_active %}
+                                    <span class="badge active">Đang áp dụng</span>
+                                {% else %}
+                                    <span class="badge inactive">Ngưng</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary icon-button icon-view" href="{% url 'clinic:price-list-detail' price_list.pk %}" title="Chi tiết" aria-label="Chi tiết"><span class="sr-only">Chi tiết</span></a>
+                                    {% if perms.clinic.change_pricelist %}<a class="button secondary icon-button icon-edit" href="{% url 'clinic:price-list-update' price_list.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>{% endif %}
+                                    {% if perms.clinic.delete_pricelist %}<a class="button secondary icon-button icon-delete" href="{% url 'clinic:price-list-delete' price_list.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>{% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="5">Chưa có bảng giá phù hợp.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include "includes/pagination.html" %}
+{% endblock %}

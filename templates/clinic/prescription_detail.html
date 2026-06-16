@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}{{ prescription.prescription_code }}{% endblock %}
+{% block page_title %}{{ prescription.prescription_code }}{% endblock %}
+{% block page_subtitle %}
+    <p class="page-subtitle">{{ prescription.patient.full_name }} · {{ prescription.prescribed_at|date:"d/m/Y" }}</p>
+{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <div class="actions">
+            <a class="button secondary" href="{% url 'clinic:prescription-list' %}">Danh sách đơn thuốc</a>
+            <a class="button secondary icon-button icon-edit" href="{% url 'clinic:prescription-update' prescription.pk %}" title="Sửa đơn" aria-label="Sửa đơn"><span class="sr-only">Sửa đơn</span></a>
+            <a class="button secondary icon-button icon-delete" href="{% url 'clinic:prescription-delete' prescription.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>
+        </div>
+        <a class="button" href="{% url 'clinic:prescription-item-create' prescription.pk %}">Thêm thuốc</a>
+    </div>
+
+    <div class="panel panel-body" style="margin-bottom: 16px;">
+        <div class="form-grid">
+            <div>
+                <div class="form-row">
+                    <label>Bệnh nhân</label>
+                    <p><a href="{% url 'clinic:patient-detail' prescription.patient.pk %}">{{ prescription.patient.full_name }}</a> ({{ prescription.patient.patient_code }})</p>
+                </div>
+                <div class="form-row">
+                    <label>Bác sĩ kê đơn</label>
+                    <p>{{ prescription.doctor.full_name|default:"—" }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Lịch khám</label>
+                    <p>{% if prescription.appointment %}<a href="{% url 'clinic:appointment-detail' prescription.appointment.pk %}">{{ prescription.appointment.appointment_code }}</a>{% else %}—{% endif %}</p>
+                </div>
+            </div>
+            <div>
+                <div class="form-row">
+                    <label>Ngày kê</label>
+                    <p>{{ prescription.prescribed_at|date:"d/m/Y" }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Chẩn đoán</label>
+                    <p>{{ prescription.diagnosis|default:"—" }}</p>
+                </div>
+            </div>
+            <div class="form-row full">
+                <label>Ghi chú</label>
+                <p style="white-space: pre-wrap;">{{ prescription.note|default:"—" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Thuốc</th>
+                        <th>Liều dùng</th>
+                        <th>Số lượng</th>
+                        <th>Hướng dẫn sử dụng</th>
+                        <th>Ghi chú</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in prescription.items.all %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'clinic:medicine-detail' item.medicine.pk %}">{{ item.medicine.name }}</a>
+                                {% if item.medicine.strength %}<br><span class="help-text">{{ item.medicine.strength }}</span>{% endif %}
+                            </td>
+                            <td>{{ item.dosage }}</td>
+                            <td>{{ item.quantity }} {{ item.medicine.unit }}</td>
+                            <td style="white-space: pre-wrap;">{{ item.instructions }}</td>
+                            <td>{{ item.note|default:"—" }}</td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary icon-button icon-edit" href="{% url 'clinic:prescription-item-update' item.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>
+                                    <a class="button secondary icon-button icon-delete" href="{% url 'clinic:prescription-item-delete' item.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="6">Chưa có thuốc trong đơn.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

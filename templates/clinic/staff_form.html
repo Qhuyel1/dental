@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Cập nhật bác sĩ / nhân viên{% else %}Thêm bác sĩ / nhân viên{% endif %}{% endblock %}
+{% block page_title %}{% if object %}Cập nhật bác sĩ / nhân viên{% else %}Thêm bác sĩ / nhân viên{% endif %}{% endblock %}
+
+{% block content %}
+    <form class="panel" method="post">
+        {% csrf_token %}
+        <div class="panel-body">
+            {% if form.non_field_errors %}
+                <div class="form-row full">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="form-grid">
+                {% for field in form %}
+                    {% if field.name != "create_login_account" and field.name != "username" and field.name != "initial_password" and field.name != "degree" and field.name != "salary_coefficient" and field.name != "degree_preset" %}
+                        {% if field.is_hidden %}
+                            {{ field }}
+                        {% elif field.field.widget.input_type == "checkbox" %}
+                            <div class="form-row">
+                                <div class="checkbox-row">
+                                    {{ field }}
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="required-mark">*</span>{% endif %}</label>
+                                </div>
+                                {% if field.help_text %}<div class="help-text">{{ field.help_text }}</div>{% endif %}
+                                {{ field.errors }}
+                            </div>
+                        {% else %}
+                            <div class="form-row">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="required-mark">*</span>{% endif %}</label>
+                                {{ field }}
+                                {% if field.help_text %}<div class="help-text">{{ field.help_text }}</div>{% endif %}
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+
+                {# --- Degree preset block --- #}
+                <div class="form-row" id="degree-preset-row">
+                    <label for="{{ form.degree_preset.id_for_label }}">{{ form.degree_preset.label }}</label>
+                    {{ form.degree_preset }}
+                    {{ form.degree_preset.errors }}
+                </div>
+
+                {# --- Custom inputs (only visible when Tùy chỉnh is selected) --- #}
+                <div class="form-row" id="degree-custom-row" style="display:none;">
+                    <label for="degree-custom-input">Tên bằng cấp / học vị <span class="required-mark">*</span></label>
+                    <input type="text" id="degree-custom-input" class="form-control" placeholder="Ví dụ: BS.CKI, Thạc sĩ Y khoa...">
+                    <div class="help-text">Nhập tên bằng cấp hoặc học hàm học vị.</div>
+                </div>
+                <div class="form-row" id="salary-custom-row" style="display:none;">
+                    <label for="salary-custom-input">Hệ số bác sĩ <span class="required-mark">*</span></label>
+                    <input type="number" id="salary-custom-input" class="form-control" min="0.50" max="5.00" step="0.01" placeholder="Ví dụ: 1.30">
+                    <div class="help-text">Từ 0.50 đến 5.00. Tham khảo: ĐH=1.3, ThS=1.5, TS=1.7, PGS=2.0, GS=2.5</div>
+                </div>
+
+                {# Hidden fields - values synced by JS #}
+                {{ form.degree }}
+                {{ form.salary_coefficient }}
+            </div>
+
+            <div class="panel panel-body" style="margin-top: 20px;">
+                <div class="toolbar" style="margin-bottom: 12px;">
+                    <h2 style="font-size: 20px; margin: 0;">Tài khoản đăng nhập</h2>
+                </div>
+
+                {% if object and object.user %}
+                    <div class="form-grid">
+                        <div class="form-row">
+                            <label>Tên đăng nhập</label>
+                            <p><strong>{{ object.user.username }}</strong></p>
+                        </div>
+                        <div class="form-row">
+                            <label>Nhóm quyền</label>
+                            <p>
+                                {% for group in object.user.groups.all %}
+                                    {{ group.name }}{% if not forloop.last %}, {% endif %}
+                                {% empty %}
+                                    —
+                                {% endfor %}
+                            </p>
+                        </div>
+                        <div class="form-row">
+                            <label>Trạng thái tài khoản</label>
+                            <p>
+                                {% if object.user.is_active %}
+                                    <span class="badge active">Đang hoạt động</span>
+                                {% else %}
+                                    <span class="badge inactive">Tạm khóa</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="form-row">
+                            <label>Ghi chú</label>
+                            <p class="help-text">Role của hồ sơ sẽ tự đồng bộ lại nhóm quyền cho tài khoản liên kết khi bạn lưu.</p>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="form-grid">
+                        <div class="form-row full">
+                            <div class="checkbox-row">
+                                {{ form.create_login_account }}
+                                <label for="{{ form.create_login_account.id_for_label }}">{{ form.create_login_account.label }}</label>
+                            </div>
+                            {% if form.create_login_account.help_text %}<div class="help-text">{{ form.create_login_account.help_text }}</div>{% endif %}
+                            {{ form.create_login_account.errors }}
+                        </div>
+                        <div class="form-row">
+                            <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+                            {{ form.username }}
+                            {% if form.username.help_text %}<div class="help-text">{{ form.username.help_text }}</div>{% endif %}
+                            {{ form.username.errors }}
+                        </div>
+                        <div class="form-row">
+                            <label for="{{ form.initial_password.id_for_label }}">{{ form.initial_password.label }}</label>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                {{ form.initial_password }}
+                                <button class="secondary" type="button" id="generate-password-button">Sinh mật khẩu</button>
+                            </div>
+                            {% if form.initial_password.help_text %}<div class="help-text">{{ form.initial_password.help_text }}</div>{% endif %}
+                            {{ form.initial_password.errors }}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="actions" style="margin-top: 22px;">
+                <button type="submit">Lưu</button>
+                {% if object %}
+                    <a class="button secondary" href="{% url 'clinic:staff-detail' object.pk %}">Hủy</a>
+                {% else %}
+                    <a class="button secondary" href="{% url 'clinic:staff-list' %}">Hủy</a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+
+    {% if not object or not object.user %}
+        <script>
+            (function () {
+                const usernameInput = document.getElementById("{{ form.username.id_for_label }}");
+                const employeeCodeInput = document.getElementById("{{ form.employee_code.id_for_label }}");
+                const passwordInput = document.getElementById("{{ form.initial_password.id_for_label }}");
+                const passwordButton = document.getElementById("generate-password-button");
+
+                function randomPassword(length) {
+                    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+                    let result = "";
+                    for (let index = 0; index < length; index += 1) {
+                        result += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                    }
+                    return result;
+                }
+
+                if (passwordButton && passwordInput) {
+                    passwordButton.addEventListener("click", function () {
+                        passwordInput.value = randomPassword(10);
+                    });
+                }
+
+                if (employeeCodeInput && usernameInput) {
+                    employeeCodeInput.addEventListener("input", function () {
+                        if (usernameInput.value.trim()) {
+                            return;
+                        }
+                        usernameInput.value = employeeCodeInput.value.trim().toLowerCase();
+                    });
+                }
+            })();
+        </script>
+    {% endif %}
+
+    <script>
+        (function () {
+            const presetSelect = document.getElementById("{{ form.degree_preset.id_for_label }}");
+            const salaryInput = document.querySelector("input[name='salary_coefficient']");
+            const degreeInput = document.querySelector("input[name='degree']");
+            const customDegreeRow = document.getElementById("degree-custom-row");
+            const customSalaryRow = document.getElementById("salary-custom-row");
+            const customDegreeInput = document.getElementById("degree-custom-input");
+            const customSalaryInput = document.getElementById("salary-custom-input");
+
+            function applyPreset() {
+                const val = presetSelect.value;
+                const isCustom = !val || val === "__custom__|0";
+
+                if (isCustom) {
+                    // Show manual input rows
+                    customDegreeRow.style.display = "";
+                    customSalaryRow.style.display = "";
+                    // Sync from custom inputs to hidden fields
+                    if (degreeInput) degreeInput.value = customDegreeInput.value;
+                    if (salaryInput) salaryInput.value = customSalaryInput.value;
+                } else {
+                    // Hide manual input rows
+                    customDegreeRow.style.display = "none";
+                    customSalaryRow.style.display = "none";
+                    const parts = val.split("|");
+                    if (parts.length === 2) {
+                        if (degreeInput) degreeInput.value = parts[0];
+                        if (salaryInput) salaryInput.value = parseFloat(parts[1]).toFixed(2);
+                    }
+                }
+            }
+
+            // Keep hidden fields in sync as user types in custom inputs
+            if (customDegreeInput) {
+                customDegreeInput.addEventListener("input", function () {
+                    if (degreeInput) degreeInput.value = customDegreeInput.value;
+                });
+            }
+            if (customSalaryInput) {
+                customSalaryInput.addEventListener("input", function () {
+                    if (salaryInput) salaryInput.value = customSalaryInput.value;
+                });
+            }
+
+            if (presetSelect) {
+                presetSelect.addEventListener("change", applyPreset);
+                applyPreset();
+            }
+        })();
+    </script>
+{% endblock %}

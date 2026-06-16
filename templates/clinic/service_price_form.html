@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Cập nhật giá dịch vụ{% else %}Thêm giá dịch vụ{% endif %}{% endblock %}
+{% block page_title %}{% if object %}Cập nhật giá dịch vụ{% else %}Thêm giá dịch vụ{% endif %}{% endblock %}
+{% block page_subtitle %}
+    {% if price_list %}<p class="page-subtitle">{{ price_list.name }}</p>{% endif %}
+{% endblock %}
+
+{% block content %}
+    <form class="panel" method="post">
+        {% csrf_token %}
+        <div class="panel-body">
+            <div class="form-grid">
+                {% include "includes/form_fields.html" %}
+            </div>
+            <div class="actions" style="margin-top: 22px;">
+                <button type="submit">Lưu</button>
+                {% if price_list %}
+                    <a class="button secondary" href="{% url 'clinic:price-list-detail' price_list.pk %}">Hủy</a>
+                {% else %}
+                    <a class="button secondary" href="{% url 'clinic:price-list-list' %}">Hủy</a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+{% endblock %}

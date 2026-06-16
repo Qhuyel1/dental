@@ -1,0 +1,83 @@
+{% extends "base.html" %}
+{% block title %}Báo cáo lương tất cả bác sĩ năm {{ selected_year }}{% endblock %}
+{% block page_title %}Báo cáo lương năm {{ selected_year }}{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Tổng hợp lương tất cả bác sĩ trong năm</p>{% endblock %}
+
+{% block content %}
+<div class="toolbar" style="margin-bottom: 18px;">
+    <form class="filter-form" method="get">
+        <select name="year" class="form-control" onchange="this.form.submit()">
+            {% for y in years %}
+            <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="button secondary">Xem</button>
+    </form>
+    <div style="display: flex; gap: 8px;">
+        <a class="button secondary" href="{% url 'payroll:report-monthly' %}">Báo cáo tháng</a>
+        <a class="button secondary" href="{% url 'payroll:report-doctor-annual' %}">Theo bác sĩ</a>
+    </div>
+</div>
+
+<!-- Summary metric -->
+<div class="metric-grid" style="margin-bottom: 20px;">
+    <div class="metric">
+        <div class="metric-value">{{ rows|length }}</div>
+        <div class="metric-label">Bác sĩ có dữ liệu năm {{ selected_year }}</div>
+    </div>
+    <div class="metric">
+        <div class="metric-value" style="color: #5b21b6; font-size: 24px;">{{ grand_total|floatformat:0 }} ₫</div>
+        <div class="metric-label">Tổng chi lương cả năm</div>
+    </div>
+</div>
+
+<!-- Bảng tổng hợp -->
+<div class="panel" style="overflow-x: auto;">
+    <table class="data-table" style="min-width: 1000px;">
+        <thead>
+            <tr>
+                <th>Bác sĩ</th>
+                {% for m in months %}
+                <th class="text-right" style="font-size: 12px; white-space: nowrap;">T{{ m }}</th>
+                {% endfor %}
+                <th class="text-right">Tổng năm (₫)</th>
+                <th class="text-right">Giờ QĐ</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td>
+                    <a href="{% url 'payroll:report-doctor-annual' %}?doctor={{ row.doctor.pk }}&year={{ selected_year }}">
+                        <strong>{{ row.doctor.full_name }}</strong>
+                    </a>
+                </td>
+                {% for amount in row.monthly %}
+                <td class="text-right" style="font-size: 13px; color: {% if amount > 0 %}var(--text){% else %}var(--muted){% endif %};">
+                    {% if amount > 0 %}{{ amount|floatformat:0 }}{% else %}—{% endif %}
+                </td>
+                {% endfor %}
+                <td class="text-right" style="font-weight: 700; color: #5b21b6;">{{ row.total|floatformat:0 }}</td>
+                <td class="text-right" style="color: var(--muted);">{{ row.total_hours|floatformat:1 }} h</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="15" class="empty-row">Không có dữ liệu lương năm {{ selected_year }}.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        {% if rows %}
+        <tfoot>
+            <tr>
+                <td style="font-weight: 700; padding: 12px 16px;">Tổng cộng</td>
+                {% for m in months %}
+                <td></td>
+                {% endfor %}
+                <td class="text-right" style="font-weight: 700; font-size: 16px; color: #5b21b6;">{{ grand_total|floatformat:0 }} ₫</td>
+                <td></td>
+            </tr>
+        </tfoot>
+        {% endif %}
+    </table>
+</div>
+{% endblock %}

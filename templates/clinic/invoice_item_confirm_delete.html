@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Xóa chi phí{% endblock %}
+{% block page_title %}Xóa chi phí{% endblock %}
+
+{% block content %}
+    <form class="panel" method="post">
+        {% csrf_token %}
+        <div class="panel-body">
+            <div class="danger-zone">
+                <p>Bạn đang xóa chi phí <strong>{{ object.description }}</strong> khỏi hóa đơn {{ object.invoice.invoice_code }}.</p>
+            </div>
+            <div class="actions" style="margin-top: 18px;">
+                <button class="danger icon-button icon-delete" type="submit" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></button>
+                <a class="button secondary" href="{% url 'clinic:invoice-detail' object.invoice.pk %}">Hủy</a>
+            </div>
+        </div>
+    </form>
+{% endblock %}

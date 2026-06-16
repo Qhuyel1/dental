@@ -1,0 +1,121 @@
+{% extends "portal/base.html" %}
+
+{% block title %}Tạo cuộc hội thoại — Hỗ trợ{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Tạo cuộc hội thoại mới</h1>
+    <p>Nhập tiêu đề và nội dung tin nhắn để gửi đến bộ phận hỗ trợ.</p>
+</div>
+
+{% if error %}
+<div style="
+    background: var(--danger-bg);
+    color: var(--danger);
+    padding: 12px 18px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 500;
+    border: 1px solid rgba(239, 68, 68, 0.15);
+">{{ error }}</div>
+{% endif %}
+
+<div class="card">
+    <form method="post" action="{% url 'portal:messages-create' %}" id="form-create-conversation">
+        {% csrf_token %}
+
+        <div style="margin-bottom: 20px;">
+            <label for="id_subject" style="
+                display: block;
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--muted);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 8px;
+            ">Tiêu đề / lý do liên hệ <span style="color: var(--danger);">*</span></label>
+            <input type="text" name="subject" id="id_subject"
+                   value="{{ form_subject|default:'' }}"
+                   maxlength="200"
+                   placeholder="Ví dụ: Hỏi về lịch khám, Hỗ trợ hóa đơn..."
+                   style="
+                       width: 100%;
+                       padding: 12px 16px;
+                       border: 1px solid var(--line);
+                       border-radius: 8px;
+                       font-size: 15px;
+                       font-family: 'Inter', sans-serif;
+                       color: var(--text);
+                       background: var(--bg);
+                       transition: border-color 0.2s;
+                       outline: none;
+                   "
+                   onfocus="this.style.borderColor='var(--primary)'"
+                   onblur="this.style.borderColor='var(--line)'"
+                   required>
+        </div>
+
+        <div style="margin-bottom: 24px;">
+            <label for="id_content" style="
+                display: block;
+                font-size: 13px;
+                font-weight: 600;
+                color: var(--muted);
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin-bottom: 8px;
+            ">Nội dung tin nhắn <span style="color: var(--danger);">*</span></label>
+            <textarea name="content" id="id_content"
+                      maxlength="2000"
+                      rows="6"
+                      placeholder="Nhập nội dung tin nhắn..."
+                      style="
+                          width: 100%;
+                          padding: 12px 16px;
+                          border: 1px solid var(--line);
+                          border-radius: 8px;
+                          font-size: 15px;
+                          font-family: 'Inter', sans-serif;
+                          color: var(--text);
+                          background: var(--bg);
+                          transition: border-color 0.2s;
+                          outline: none;
+                          resize: vertical;
+                          min-height: 120px;
+                      "
+                      onfocus="this.style.borderColor='var(--primary)'"
+                      onblur="this.style.borderColor='var(--line)'"
+                      required>{{ form_content|default:'' }}</textarea>
+            <div style="text-align: right; font-size: 12px; color: var(--muted); margin-top: 4px;">
+                Tối đa 2000 ký tự
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 12px; justify-content: flex-end;">
+            <a href="{% url 'portal:messages-list' %}" style="
+                padding: 10px 20px;
+                border: 1px solid var(--line);
+                border-radius: 8px;
+                color: var(--muted);
+                font-size: 14px;
+                font-weight: 600;
+                text-decoration: none;
+                transition: all 0.15s;
+            ">Hủy</a>
+            <button type="submit" id="btn-submit-conversation" style="
+                padding: 10px 24px;
+                background: var(--primary);
+                color: #fff;
+                border: none;
+                border-radius: 8px;
+                font-size: 14px;
+                font-weight: 600;
+                font-family: 'Inter', sans-serif;
+                cursor: pointer;
+                transition: background 0.2s;
+            ">Gửi tin nhắn</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

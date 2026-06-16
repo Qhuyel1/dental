@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Cập nhật bệnh nhân{% else %}Thêm bệnh nhân mới{% endif %}{% endblock %}
+{% block page_title %}{% if object %}Cập nhật: {{ object.full_name }}{% else %}Thêm bệnh nhân mới{% endif %}{% endblock %}
+
+{% block content %}
+    <form class="panel" method="post">
+        {% csrf_token %}
+        <div class="panel-body">
+            {% if form.non_field_errors %}
+                <div class="form-row full">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="form-grid">
+                {% for field in form %}
+                    {% if field.name != "create_login_account" and field.name != "username" and field.name != "initial_password" %}
+                        {% if field.is_hidden %}
+                            {{ field }}
+                        {% elif field.field.widget.input_type == "checkbox" %}
+                            <div class="form-row">
+                                <div class="checkbox-row">
+                                    {{ field }}
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="required-mark">*</span>{% endif %}</label>
+                                </div>
+                                {% if field.help_text %}<div class="help-text">{{ field.help_text }}</div>{% endif %}
+                                {{ field.errors }}
+                            </div>
+                        {% else %}
+                            <div class="form-row">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="required-mark">*</span>{% endif %}</label>
+                                {{ field }}
+                                {% if field.help_text %}<div class="help-text">{{ field.help_text }}</div>{% endif %}
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <div class="panel panel-body" style="margin-top: 20px;">
+                <div class="toolbar" style="margin-bottom: 12px;">
+                    <h2 style="font-size: 20px; margin: 0;">Tài khoản đăng nhập</h2>
+                </div>
+
+                {% if object and object.user %}
+                    <div class="form-grid">
+                        <div class="form-row">
+                            <label>Tên đăng nhập</label>
+                            <p><strong>{{ object.user.username }}</strong></p>
+                        </div>
+                        <div class="form-row">
+                            <label>Nhóm quyền</label>
+                            <p>
+                                {% for group in object.user.groups.all %}
+                                    {{ group.name }}{% if not forloop.last %}, {% endif %}
+                                {% empty %}
+                                    —
+                                {% endfor %}
+                            </p>
+                        </div>
+                        <div class="form-row">
+                            <label>Trạng thái tài khoản</label>
+                            <p>
+                                {% if object.user.is_active %}
+                                    <span class="badge active">Đang hoạt động</span>
+                                {% else %}
+                                    <span class="badge inactive">Tạm khóa</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="form-row">
+                            <label>Ghi chú</label>
+                            <p class="help-text">Hệ thống tự động liên kết tài khoản này với nhóm quyền Bệnh nhân.</p>
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="form-grid">
+                        <div class="form-row full">
+                            <div class="checkbox-row">
+                                {{ form.create_login_account }}
+                                <label for="{{ form.create_login_account.id_for_label }}">{{ form.create_login_account.label }}</label>
+                            </div>
+                            {% if form.create_login_account.help_text %}<div class="help-text">{{ form.create_login_account.help_text }}</div>{% endif %}
+                            {{ form.create_login_account.errors }}
+                        </div>
+                        <div class="form-row">
+                            <label for="{{ form.username.id_for_label }}">{{ form.username.label }}</label>
+                            {{ form.username }}
+                            {% if form.username.help_text %}<div class="help-text">{{ form.username.help_text }}</div>{% endif %}
+                            {{ form.username.errors }}
+                        </div>
+                        <div class="form-row">
+                            <label for="{{ form.initial_password.id_for_label }}">{{ form.initial_password.label }}</label>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                {{ form.initial_password }}
+                                <button class="secondary" type="button" id="generate-password-button">Sinh mật khẩu</button>
+                            </div>
+                            {% if form.initial_password.help_text %}<div class="help-text">{{ form.initial_password.help_text }}</div>{% endif %}
+                            {{ form.initial_password.errors }}
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="actions" style="margin-top: 22px;">
+                <button type="submit">Lưu</button>
+                {% if object %}
+                    <a class="button secondary" href="{% url 'clinic:patient-detail' object.pk %}">Hủy</a>
+                {% else %}
+                    <a class="button secondary" href="{% url 'clinic:patient-list' %}">Hủy</a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+
+    {% if not object or not object.user %}
+        <script>
+            (function () {
+                const usernameInput = document.getElementById("{{ form.username.id_for_label }}");
+                const patientCodeInput = document.getElementById("{{ form.patient_code.id_for_label }}");
+                const passwordInput = document.getElementById("{{ form.initial_password.id_for_label }}");
+                const passwordButton = document.getElementById("generate-password-button");
+
+                function randomPassword(length) {
+                    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
+                    let result = "";
+                    for (let index = 0; index < length; index += 1) {
+                        result += alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                    }
+                    return result;
+                }
+
+                if (passwordButton && passwordInput) {
+                    passwordButton.addEventListener("click", function () {
+                        passwordInput.value = randomPassword(10);
+                    });
+                }
+
+                if (patientCodeInput && usernameInput) {
+                    patientCodeInput.addEventListener("input", function () {
+                        if (usernameInput.value.trim()) {
+                            return;
+                        }
+                        usernameInput.value = patientCodeInput.value.trim().toLowerCase();
+                    });
+                }
+            })();
+        </script>
+    {% endif %}
+{% endblock %}

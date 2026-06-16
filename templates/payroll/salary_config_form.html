@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{% if object %}Cập nhật cấu hình lương{% else %}Thêm cấu hình lương{% endif %}{% endblock %}
+{% block page_title %}{% if object %}Cập nhật cấu hình lương{% else %}Thêm cấu hình lương mới{% endif %}{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Mức tiền cơ bản cho một giờ quy đổi</p>{% endblock %}
+
+{% block content %}
+<div style="max-width: 560px;">
+    <div class="panel">
+        <div class="panel-body">
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="field-group" style="margin-bottom: 18px;">
+                    <label class="field-label" for="{{ field.id_for_label }}">
+                        {{ field.label }}{% if field.field.required %} <span style="color: var(--danger);">*</span>{% endif %}
+                    </label>
+                    {{ field }}
+                    {% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}
+                    {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+                </div>
+                {% endfor %}
+                {% if form.non_field_errors %}
+                    <div class="message error">{{ form.non_field_errors }}</div>
+                {% endif %}
+                <div style="display: flex; gap: 10px; margin-top: 24px;">
+                    <button type="submit" class="button">💾 Lưu</button>
+                    <a class="button secondary" href="{% url 'payroll:salary-config-list' %}">Hủy</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

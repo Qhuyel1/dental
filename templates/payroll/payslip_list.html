@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% block title %}Danh sách phiếu lương{% endblock %}
+{% block page_title %}Phiếu lương bác sĩ{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Danh sách phiếu lương đã lập</p>{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <form class="filter-form" method="get" id="filter-form">
+        <select name="doctor" class="form-control" onchange="this.form.submit()" style="min-width: 200px;">
+            <option value="">Tất cả bác sĩ</option>
+            {% for doc in doctors %}
+            <option value="{{ doc.pk }}" {% if selected_doctor == doc.pk|stringformat:"s" %}selected{% endif %}>{{ doc.full_name }}</option>
+            {% endfor %}
+        </select>
+        <select name="month" class="form-control" onchange="this.form.submit()">
+            <option value="">Tháng</option>
+            {% for m in months %}
+            <option value="{{ m }}" {% if selected_month == m|stringformat:"s" %}selected{% endif %}>Tháng {{ m }}</option>
+            {% endfor %}
+        </select>
+        <select name="year" class="form-control" onchange="this.form.submit()">
+            <option value="">Năm</option>
+            {% for y in years %}
+            <option value="{{ y }}" {% if selected_year == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+        <select name="status" class="form-control" onchange="this.form.submit()">
+            <option value="">Tất cả trạng thái</option>
+            {% for val, label in status_choices %}
+            <option value="{{ val }}" {% if selected_status == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </form>
+    <a class="button" href="{% url 'payroll:payslip-generate' %}">+ Lập phiếu lương</a>
+</div>
+
+<div class="panel">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Mã phiếu</th>
+                <th>Bác sĩ</th>
+                <th>Tháng/Năm</th>
+                <th class="text-right">Giờ quy đổi</th>
+                <th class="text-right">Tổng tiền (VNĐ)</th>
+                <th>Trạng thái</th>
+                <th>Ngày lập</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ps in payslips %}
+            <tr>
+                <td><a href="{% url 'payroll:payslip-detail' ps.pk %}"><strong>{{ ps.payslip_code }}</strong></a></td>
+                <td>{{ ps.doctor.full_name }}</td>
+                <td>{{ ps.month|stringformat:"02d" }}/{{ ps.year }}</td>
+                <td class="text-right">{{ ps.total_converted_hours|floatformat:2 }} h</td>
+                <td class="text-right"><strong>{{ ps.total_amount|floatformat:0 }} ₫</strong></td>
+                <td>
+                    {% if ps.status == "draft" %}<span class="badge badge-muted">Nháp</span>
+                    {% elif ps.status == "confirmed" %}<span class="badge badge-success">Xác nhận</span>
+                    {% else %}<span class="badge badge-primary">Đã TT</span>{% endif %}
+                </td>
+                <td>{{ ps.created_at|date:"d/m/Y" }}</td>
+                <td class="actions">
+                    <a class="button secondary small" href="{% url 'payroll:payslip-detail' ps.pk %}">Xem</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="8" class="empty-row">Không có phiếu lương nào. <a href="{% url 'payroll:payslip-generate' %}">Lập phiếu ngay</a>.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% if is_paginated %}
+<div class="pagination" style="margin-top: 16px; display: flex; gap: 8px; justify-content: center;">
+    {% if page_obj.has_previous %}
+        <a class="button secondary small" href="?page={{ page_obj.previous_page_number }}&doctor={{ selected_doctor }}&month={{ selected_month }}&year={{ selected_year }}&status={{ selected_status }}">← Trước</a>
+    {% endif %}
+    <span style="align-self: center; color: var(--muted);">Trang {{ page_obj.number }}/{{ page_obj.paginator.num_pages }}</span>
+    {% if page_obj.has_next %}
+        <a class="button secondary small" href="?page={{ page_obj.next_page_number }}&doctor={{ selected_doctor }}&month={{ selected_month }}&year={{ selected_year }}&status={{ selected_status }}">Sau →</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

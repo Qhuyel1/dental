@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Hóa đơn{% endblock %}
+{% block page_title %}Thanh toán và hóa đơn{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Tạo hóa đơn, theo dõi thanh toán một lần hoặc trả góp</p>{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <form class="filter-form" method="get">
+            <input class="form-control" type="text" name="q" value="{{ keyword }}" placeholder="Tìm mã hóa đơn, bệnh nhân, điện thoại">
+            <input class="form-control" type="date" name="date_from" value="{{ selected_date_from }}">
+            <input class="form-control" type="date" name="date_to" value="{{ selected_date_to }}">
+            <select name="status">
+                <option value="">Tất cả trạng thái</option>
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="payment_type">
+                <option value="">Tất cả hình thức</option>
+                {% for value, label in payment_type_choices %}
+                    <option value="{{ value }}" {% if selected_payment_type == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Lọc</button>
+            {% if keyword or selected_status or selected_payment_type or selected_date_from or selected_date_to %}<a class="button secondary" href="{% url 'clinic:invoice-list' %}">Xóa lọc</a>{% endif %}
+        </form>
+        <a class="button" href="{% url 'clinic:invoice-create' %}">Tạo hóa đơn</a>
+    </div>
+
+    <div class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã hóa đơn</th>
+                        <th>Bệnh nhân</th>
+                        <th>Ngày lập</th>
+                        <th>Tổng chi phí</th>
+                        <th>Đã thanh toán</th>
+                        <th>Còn nợ</th>
+                        <th>Trạng thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
+                        <tr>
+                            <td><a href="{% url 'clinic:invoice-detail' invoice.pk %}">{{ invoice.invoice_code }}</a></td>
+                            <td>
+                                <strong>{{ invoice.patient.full_name }}</strong><br>
+                                <span class="help-text">{{ invoice.patient.patient_code }}{% if invoice.patient.phone %} - {{ invoice.patient.phone }}{% endif %}</span>
+                            </td>
+                            <td>
+                                {{ invoice.issue_date|date:"d/m/Y" }}<br>
+                                <span class="help-text">{{ invoice.get_payment_type_display }}</span>
+                            </td>
+                            <td>{{ invoice.total_amount|floatformat:0 }} VND</td>
+                            <td>{{ invoice.paid_amount|floatformat:0 }} VND</td>
+                            <td>{{ invoice.outstanding_amount|floatformat:0 }} VND</td>
+                            <td>
+                                {% if invoice.status == "paid" %}
+                                    <span class="badge active">{{ invoice.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge inactive">{{ invoice.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary icon-button icon-view" href="{% url 'clinic:invoice-detail' invoice.pk %}" title="Xem" aria-label="Xem"><span class="sr-only">Xem</span></a>
+                                    <a class="button secondary icon-button icon-pdf" href="{% url 'clinic:invoice-pdf' invoice.pk %}" title="Xuất PDF" aria-label="Xuất PDF"><span class="sr-only">PDF</span></a>
+                                    <a class="button secondary icon-button icon-edit" href="{% url 'clinic:invoice-update' invoice.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="8">Chưa có hóa đơn phù hợp.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include "includes/pagination.html" %}
+{% endblock %}

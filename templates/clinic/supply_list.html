@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Vật tư / kho{% endblock %}
+{% block page_title %}Quản lý vật tư / kho{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Theo dõi nhập kho, xuất kho, tồn thấp và hạn sử dụng vật tư nha khoa</p>{% endblock %}
+
+{% block content %}
+    <div class="metric-grid" style="margin-bottom: 16px;">
+        <div class="metric">
+            <div class="metric-value">{{ total_supply_count }}</div>
+            <div class="metric-label">Loại vật tư</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value">{{ low_stock_count }}</div>
+            <div class="metric-label">Sắp hết hàng</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value">{{ expiring_lot_count }}</div>
+            <div class="metric-label">Lô sắp hết hạn</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value">{{ expired_lot_count }}</div>
+            <div class="metric-label">Lô đã hết hạn</div>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <form class="filter-form" method="get">
+            <input class="form-control" type="text" name="q" value="{{ keyword }}" placeholder="Tìm mã, tên, số lô, nhà cung cấp">
+            <select name="category">
+                <option value="">Tất cả nhóm</option>
+                {% for value, label in category_choices %}
+                    <option value="{{ value }}" {% if selected_category == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="stock_status">
+                <option value="">Tất cả tồn kho</option>
+                <option value="available" {% if selected_stock_status == "available" %}selected{% endif %}>Còn hàng</option>
+                <option value="low" {% if selected_stock_status == "low" %}selected{% endif %}>Sắp hết</option>
+                <option value="out" {% if selected_stock_status == "out" %}selected{% endif %}>Hết hàng</option>
+            </select>
+            <select name="expiry_status">
+                <option value="">Tất cả hạn dùng</option>
+                <option value="expiring" {% if selected_expiry_status == "expiring" %}selected{% endif %}>Sắp hết hạn</option>
+                <option value="expired" {% if selected_expiry_status == "expired" %}selected{% endif %}>Đã hết hạn</option>
+            </select>
+            <select name="status">
+                <option value="">Tất cả trạng thái</option>
+                <option value="active" {% if selected_status == "active" %}selected{% endif %}>Đang dùng</option>
+                <option value="inactive" {% if selected_status == "inactive" %}selected{% endif %}>Ngưng</option>
+            </select>
+            <button type="submit">Tìm kiếm</button>
+            {% if keyword or selected_category or selected_status or selected_stock_status or selected_expiry_status %}
+                <a class="button secondary" href="{% url 'clinic:supply-list' %}">Xóa lọc</a>
+            {% endif %}
+        </form>
+        <a class="button" href="{% url 'clinic:supply-create' %}">Thêm vật tư</a>
+    </div>
+
+    <div class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Vật tư</th>
+                        <th>Nhóm</th>
+                        <th>Tồn kho</th>
+                        <th>Cảnh báo</th>
+                        <th>Trạng thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for supply in supplies %}
+                        <tr>
+                            <td><a href="{% url 'clinic:supply-detail' supply.pk %}">{{ supply.supply_code }}</a></td>
+                            <td>
+                                <strong>{{ supply.name }}</strong>
+                                <br><span class="help-text">{{ supply.unit }}</span>
+                            </td>
+                            <td>{{ supply.get_category_display }}</td>
+                            <td>
+                                <strong>{{ supply.stock_quantity|floatformat:-2 }}</strong> {{ supply.unit }}
+                                <br><span class="help-text">Ngưỡng: {{ supply.minimum_quantity|floatformat:-2 }}</span>
+                            </td>
+                            <td>
+                                {% if supply.stock_quantity <= 0 %}
+                                    <span class="badge danger">Hết hàng</span>
+                                {% elif supply.minimum_quantity > 0 and supply.stock_quantity <= supply.minimum_quantity %}
+                                    <span class="badge warning">Sắp hết</span>
+                                {% else %}
+                                    <span class="badge active">Đủ tồn</span>
+                                {% endif %}
+                                {% if supply.expired_lot_count %}
+                                    <br><span class="badge danger" style="margin-top: 4px;">{{ supply.expired_lot_count }} lô hết hạn</span>
+                                {% elif supply.expiring_lot_count %}
+                                    <br><span class="badge warning" style="margin-top: 4px;">{{ supply.expiring_lot_count }} lô sắp hết hạn</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if supply.is_active %}
+                                    <span class="badge active">Đang dùng</span>
+                                {% else %}
+                                    <span class="badge inactive">Ngưng</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary icon-button icon-view" href="{% url 'clinic:supply-detail' supply.pk %}" title="Xem" aria-label="Xem"><span class="sr-only">Xem</span></a>
+                                    <a class="button secondary icon-button icon-edit" href="{% url 'clinic:supply-update' supply.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="7">Chưa có vật tư phù hợp.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include "includes/pagination.html" %}
+{% endblock %}

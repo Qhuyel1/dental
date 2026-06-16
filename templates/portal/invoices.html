@@ -1,0 +1,77 @@
+{% extends "portal/base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Hóa đơn" %} — {% translate "Hồ sơ bệnh nhân" %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{% translate "Lịch sử hóa đơn" %}</h1>
+    <p>{% translate "Chi tiết các khoản phí và thanh toán của bạn." %}</p>
+</div>
+
+<div class="card">
+    {% if invoices %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>{% translate "Mã HĐ" %}</th>
+                <th>{% translate "Ngày tạo" %}</th>
+                <th>{% translate "Dịch vụ" %}</th>
+                <th>{% translate "Tổng tiền" %}</th>
+                <th>{% translate "Đã trả" %}</th>
+                <th>{% translate "Trạng thái" %}</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for inv in invoices %}
+            <tr>
+                <td><strong>{{ inv.invoice_code|default:inv.pk }}</strong></td>
+                <td>{{ inv.created_at|date:"d/m/Y" }}</td>
+                <td>
+                    {% for item in inv.items.all %}
+                        {{ item.service.name }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                        —
+                    {% endfor %}
+                </td>
+                <td style="font-weight: 600;">{{ inv.total_amount|floatformat:0 }} ₫</td>
+                <td style="color: var(--success); font-weight: 600;">{{ inv.paid_amount|floatformat:0 }} ₫</td>
+                <td>
+                    {% if inv.status == "paid" %}
+                        <span class="badge badge-success">{% translate "Đã thanh toán" %}</span>
+                    {% elif inv.status == "partial" %}
+                        <span class="badge badge-warning">{% translate "Thanh toán một phần" %}</span>
+                    {% else %}
+                        <span class="badge badge-danger">{% translate "Chưa thanh toán" %}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if is_paginated %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}">{% translate "Trước" %}</a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="current">{{ num }}</span>
+            {% else %}
+                <a href="?page={{ num }}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">{% translate "Sau" %}</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <p>{% translate "Chưa có hóa đơn nào được tạo." %}</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

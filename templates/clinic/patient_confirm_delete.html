@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Xóa bệnh nhân{% endblock %}
+{% block page_title %}Xóa bệnh nhân{% endblock %}
+
+{% block content %}
+    <form class="panel" method="post">
+        {% csrf_token %}
+        <div class="panel-body">
+            <div class="danger-zone">
+                <p>Bạn đang xóa hồ sơ bệnh nhân <strong>{{ object.full_name }}</strong> ({{ object.patient_code }}).</p>
+                <p style="margin: 6px 0 0; color: var(--danger);">Hành động này không thể hoàn tác.</p>
+            </div>
+            <div class="actions" style="margin-top: 18px;">
+                <button class="danger icon-button icon-delete" type="submit" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></button>
+                <a class="button secondary" href="{% url 'clinic:patient-detail' object.pk %}">Hủy</a>
+            </div>
+        </div>
+    </form>
+{% endblock %}

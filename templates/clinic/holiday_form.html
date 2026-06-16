@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Cập nhật ngày nghỉ{% else %}Thêm ngày nghỉ{% endif %}{% endblock %}
+{% block page_title %}{% if object %}Cập nhật ngày nghỉ{% else %}Thêm ngày nghỉ{% endif %}{% endblock %}
+
+{% block content %}
+    <form class="panel" method="post">
+        {% csrf_token %}
+        <div class="panel-body">
+            <div class="form-grid">
+                {% include "includes/form_fields.html" %}
+            </div>
+            <div class="actions" style="margin-top: 22px;">
+                <button type="submit">Lưu</button>
+                <a class="button secondary" href="{% url 'clinic:holiday-list' %}">Hủy</a>
+            </div>
+        </div>
+    </form>
+{% endblock %}

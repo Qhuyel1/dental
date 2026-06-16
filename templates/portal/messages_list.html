@@ -1,0 +1,139 @@
+{% extends "portal/base.html" %}
+
+{% block title %}Hỗ trợ — Tin nhắn{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display: flex; align-items: center; justify-content: space-between;">
+    <div>
+        <h1>Hỗ trợ trực tuyến</h1>
+        <p>Nhắn tin trực tiếp với lễ tân / bộ phận CSKH của phòng khám.</p>
+    </div>
+    <a href="{% url 'portal:messages-create' %}" id="btn-new-conversation" style="
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        background: var(--primary);
+        color: #fff;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.2s;
+        text-decoration: none;
+    ">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+            <line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/>
+        </svg>
+        Tạo cuộc hội thoại
+    </a>
+</div>
+
+{% if conversations %}
+<div class="card" style="padding: 0; overflow: hidden;">
+    {% for conv in conversations %}
+    <a href="{% url 'portal:messages-detail' pk=conv.pk %}" id="conversation-{{ conv.pk }}" style="
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 18px 24px;
+        border-bottom: 1px solid var(--line);
+        text-decoration: none;
+        color: var(--text);
+        transition: background 0.15s;
+    " onmouseover="this.style.background='var(--primary-light)'" onmouseout="this.style.background='transparent'">
+        <div style="flex: 1; min-width: 0;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 4px;">
+                <span style="
+                    display: inline-flex;
+                    align-items: center;
+                    justify-content: center;
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 50%;
+                    background: {% if conv.is_closed %}var(--line){% else %}var(--primary-light){% endif %};
+                    flex-shrink: 0;
+                ">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="{% if conv.is_closed %}var(--muted){% else %}var(--primary){% endif %}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </span>
+                <div style="min-width: 0; flex: 1;">
+                    <div style="font-weight: 600; font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        {{ conv.subject }}
+                    </div>
+                    <div style="font-size: 12.5px; color: var(--muted); margin-top: 2px;">
+                        {% if conv.last_message %}
+                            {{ conv.last_message.content|truncatechars:60 }}
+                        {% else %}
+                            Chưa có tin nhắn
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; align-items: center; gap: 12px; flex-shrink: 0; margin-left: 16px;">
+            {% if conv.is_closed %}
+                <span class="badge" style="background: var(--line); color: var(--muted);">Đã đóng</span>
+            {% elif conv.assigned_staff %}
+                <span class="badge badge-success">Đang hỗ trợ</span>
+            {% else %}
+                <span class="badge badge-warning">Chờ phản hồi</span>
+            {% endif %}
+
+            {% with unread=conv.unread_count_for_patient %}
+            {% if unread > 0 %}
+            <span style="
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 22px;
+                height: 22px;
+                border-radius: 11px;
+                background: var(--primary);
+                color: #fff;
+                font-size: 11px;
+                font-weight: 700;
+                padding: 0 6px;
+            ">{{ unread }}</span>
+            {% endif %}
+            {% endwith %}
+
+            <span style="font-size: 12px; color: var(--muted); white-space: nowrap;">
+                {{ conv.updated_at|date:"H:i d/m/Y" }}
+            </span>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+
+{% if is_paginated %}
+<div class="pagination">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}">&laquo; Trước</a>
+    {% endif %}
+    {% for num in paginator.page_range %}
+        {% if num == page_obj.number %}
+            <span class="current">{{ num }}</span>
+        {% else %}
+            <a href="?page={{ num }}">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">Sau &raquo;</a>
+    {% endif %}
+</div>
+{% endif %}
+
+{% else %}
+<div class="card">
+    <div class="empty-state">
+        <div style="margin-bottom: 16px;">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.5;">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+        </div>
+        <p>Bạn chưa có cuộc hội thoại nào.<br>Hãy tạo cuộc hội thoại mới để liên hệ với phòng khám.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

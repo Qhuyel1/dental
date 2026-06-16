@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+
+{% block title %}{{ price_list.name }}{% endblock %}
+{% block page_title %}{{ price_list.name }}{% endblock %}
+{% block page_subtitle %}
+    <p class="page-subtitle">
+        Áp dụng từ {{ price_list.effective_from|date:"d/m/Y" }}{% if price_list.effective_to %} đến {{ price_list.effective_to|date:"d/m/Y" }}{% endif %}
+    </p>
+{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <div class="actions">
+            <a class="button secondary" href="{% url 'clinic:price-list-list' %}">Danh sách bảng giá</a>
+            {% if perms.clinic.change_pricelist %}<a class="button secondary icon-button icon-edit" href="{% url 'clinic:price-list-update' price_list.pk %}" title="Sửa bảng giá" aria-label="Sửa bảng giá"><span class="sr-only">Sửa bảng giá</span></a>{% endif %}
+        </div>
+        {% if perms.clinic.add_serviceprice %}<a class="button" href="{% url 'clinic:service-price-create' price_list.pk %}">Thêm giá dịch vụ</a>{% endif %}
+    </div>
+
+    <div class="panel panel-body" style="margin-bottom: 16px;">
+        <div class="form-grid">
+            <div class="form-row">
+                <label>Trạng thái</label>
+                <p>
+                    {% if price_list.is_active %}
+                        <span class="badge active">Đang áp dụng</span>
+                    {% else %}
+                        <span class="badge inactive">Ngưng</span>
+                    {% endif %}
+                </p>
+            </div>
+            <div class="form-row">
+                <label>Số giá dịch vụ</label>
+                <p>{{ price_list.prices.count }}</p>
+            </div>
+            <div class="form-row full">
+                <label>Ghi chú</label>
+                <p style="white-space: pre-wrap;">{{ price_list.note|default:"—" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã dịch vụ</th>
+                        <th>Dịch vụ</th>
+                        <th>Danh mục</th>
+                        <th>Đơn giá</th>
+                        <th>Ghi chú</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in price_list.prices.all %}
+                        <tr>
+                            <td><a href="{% url 'clinic:service-detail' item.service.pk %}">{{ item.service.code }}</a></td>
+                            <td><a href="{% url 'clinic:service-detail' item.service.pk %}">{{ item.service.name }}</a></td>
+                            <td><a href="{% url 'clinic:service-category-detail' item.service.category.pk %}">{{ item.service.category.name }}</a></td>
+                            <td>{{ item.price|floatformat:0 }} VND</td>
+                            <td>{{ item.note|default:"-" }}</td>
+                            <td>
+                                <div class="actions">
+                                    {% if perms.clinic.change_serviceprice %}<a class="button secondary icon-button icon-edit" href="{% url 'clinic:service-price-update' item.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>{% endif %}
+                                    {% if perms.clinic.delete_serviceprice %}<a class="button secondary icon-button icon-delete" href="{% url 'clinic:service-price-delete' item.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>{% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="6">Chưa có đơn giá dịch vụ trong bảng giá này.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

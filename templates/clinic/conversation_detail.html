@@ -1,0 +1,336 @@
+{% extends "base.html" %}
+
+{% block title %}Hội thoại #{{ conversation.pk }} — {{ conversation.subject }}{% endblock %}
+{% block page_title %}Hội thoại #{{ conversation.pk }}{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">{{ conversation.subject }}</p>{% endblock %}
+
+{% block content %}
+<style>
+    .chat-info-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 12px;
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin-bottom: 16px;
+    }
+
+    .chat-info-bar .info-item {
+        font-size: 13.5px;
+    }
+
+    .chat-info-bar .info-label {
+        color: var(--muted);
+        font-weight: 600;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+    }
+
+    .chat-info-bar .info-value {
+        font-weight: 600;
+        margin-top: 2px;
+    }
+
+    .chat-panel {
+        background: var(--panel);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        box-shadow: var(--shadow);
+        display: flex;
+        flex-direction: column;
+        height: 560px;
+    }
+
+    .chat-messages-staff {
+        flex: 1;
+        overflow-y: auto;
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .chat-messages-staff::-webkit-scrollbar { width: 6px; }
+    .chat-messages-staff::-webkit-scrollbar-track { background: transparent; }
+    .chat-messages-staff::-webkit-scrollbar-thumb { background: var(--line); border-radius: 3px; }
+
+    .msg-bubble {
+        max-width: 70%;
+        padding: 12px 16px;
+        border-radius: 16px;
+        font-size: 14px;
+        line-height: 1.55;
+        word-wrap: break-word;
+        animation: msgFadeIn 0.3s ease;
+    }
+
+    @keyframes msgFadeIn {
+        from { opacity: 0; transform: translateY(8px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg-mine {
+        align-self: flex-end;
+        background: var(--primary);
+        color: #fff;
+        border-bottom-right-radius: 4px;
+    }
+
+    .msg-other {
+        align-self: flex-start;
+        background: #f1f5f9;
+        color: var(--text);
+        border-bottom-left-radius: 4px;
+    }
+
+    .msg-meta {
+        font-size: 11px;
+        margin-top: 4px;
+        opacity: 0.7;
+    }
+
+    .msg-mine .msg-meta { text-align: right; }
+    .msg-other .msg-meta { color: var(--muted); }
+
+    .chat-input-area-staff {
+        padding: 16px 20px;
+        border-top: 1px solid var(--line);
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+    }
+
+    .chat-input-area-staff textarea {
+        flex: 1;
+        padding: 10px 14px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        font-size: 14px;
+        font-family: Arial, Helvetica, sans-serif;
+        color: var(--text);
+        resize: none;
+        outline: none;
+        min-height: 42px;
+        max-height: 100px;
+        transition: border-color 0.2s;
+    }
+
+    .chat-input-area-staff textarea:focus {
+        border-color: var(--primary);
+    }
+
+    .chat-send-btn-staff {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 10px 20px;
+        background: var(--primary);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: background 0.2s;
+        white-space: nowrap;
+    }
+
+    .chat-send-btn-staff:hover { background: var(--primary-strong); }
+    .chat-send-btn-staff:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .closed-banner {
+        padding: 14px 20px;
+        text-align: center;
+        color: var(--muted);
+        border-top: 1px solid var(--line);
+        font-size: 14px;
+    }
+</style>
+
+<!-- Info bar -->
+<div class="chat-info-bar">
+    <div style="display: flex; gap: 32px; flex-wrap: wrap;">
+        <div class="info-item">
+            <div class="info-label">Bệnh nhân</div>
+            <div class="info-value">{{ conversation.patient.full_name }} ({{ conversation.patient.patient_code }})</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Người hỗ trợ</div>
+            <div class="info-value">
+                {% if conversation.assigned_staff %}
+                    {{ conversation.assigned_staff.full_name }}
+                {% else %}
+                    <span style="color: #d97706;">Chưa có</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Trạng thái</div>
+            <div class="info-value">
+                {% if conversation.is_closed %}
+                    <span style="color: var(--muted);">Đã đóng</span>
+                {% else %}
+                    <span style="color: #10b981;">Đang mở</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">Tạo lúc</div>
+            <div class="info-value">{{ conversation.created_at|date:"H:i d/m/Y" }}</div>
+        </div>
+    </div>
+    <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+        {% if not conversation.is_closed %}
+            {% if not conversation.assigned_staff %}
+            <form method="post" action="{% url 'clinic:conversation-assign' pk=conversation.pk %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="button" style="font-size: 13px;">Nhận hỗ trợ</button>
+            </form>
+            {% endif %}
+            <form method="post" action="{% url 'clinic:conversation-close' pk=conversation.pk %}" style="display: inline;">
+                {% csrf_token %}
+                <button type="submit" class="button secondary" style="font-size: 13px;"
+                        onclick="return confirm('Bạn có chắc muốn đóng cuộc hội thoại này?')">Đóng hội thoại</button>
+            </form>
+        {% endif %}
+        <a href="{% url 'clinic:conversation-list' %}" class="button secondary" style="font-size: 13px;">← Quay lại</a>
+    </div>
+</div>
+
+<!-- Chat panel -->
+<div class="chat-panel">
+    <div class="chat-messages-staff" id="chat-messages">
+        {% for msg in chat_messages %}
+        <div class="msg-bubble {% if msg.sender == request.user %}msg-mine{% else %}msg-other{% endif %}" data-msg-id="{{ msg.pk }}">
+            {{ msg.content|linebreaksbr }}
+            <div class="msg-meta">
+                {{ msg.sender.get_full_name|default:msg.sender.username }} · {{ msg.created_at|date:"H:i d/m/Y" }}
+            </div>
+        </div>
+        {% empty %}
+        <div style="text-align: center; color: var(--muted); padding: 48px;" id="empty-msg-state">
+            Chưa có tin nhắn nào trong cuộc hội thoại này.
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if not conversation.is_closed %}
+    <div class="chat-input-area-staff">
+        <textarea id="chat-input" placeholder="Nhập tin nhắn trả lời..." maxlength="2000" rows="1"
+                  onkeydown="if(event.key==='Enter' && !event.shiftKey){event.preventDefault(); sendMessage();}"></textarea>
+        <button type="button" class="chat-send-btn-staff" id="chat-send-btn" onclick="sendMessage()">Gửi</button>
+    </div>
+    {% else %}
+    <div class="closed-banner">
+        Cuộc hội thoại đã đóng.
+    </div>
+    {% endif %}
+</div>
+
+<script>
+(function() {
+    const conversationId = {{ conversation.pk }};
+    const pollUrl = "{% url 'clinic:conversation-poll' pk=conversation.pk %}";
+    const sendUrl = "{% url 'clinic:conversation-send' pk=conversation.pk %}";
+    const csrfToken = "{{ csrf_token }}";
+    const isClosed = {{ conversation.is_closed|yesno:"true,false" }};
+
+    const messagesEl = document.getElementById('chat-messages');
+    const inputEl = document.getElementById('chat-input');
+    const sendBtnEl = document.getElementById('chat-send-btn');
+
+    let lastMsgId = 0;
+    let pollInterval = null;
+
+    function initLastMsgId() {
+        const bubbles = messagesEl.querySelectorAll('[data-msg-id]');
+        if (bubbles.length > 0) {
+            lastMsgId = parseInt(bubbles[bubbles.length - 1].dataset.msgId) || 0;
+        }
+    }
+
+    function scrollToBottom() {
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function appendMessage(msg) {
+        const emptyState = document.getElementById('empty-msg-state');
+        if (emptyState) emptyState.remove();
+
+        const div = document.createElement('div');
+        div.className = 'msg-bubble ' + (msg.is_mine ? 'msg-mine' : 'msg-other');
+        div.dataset.msgId = msg.id;
+
+        div.innerHTML = msg.content.replace(/\n/g, '<br>') +
+            '<div class="msg-meta">' + msg.sender + ' · ' + msg.created_at + '</div>';
+
+        messagesEl.appendChild(div);
+        lastMsgId = msg.id;
+        scrollToBottom();
+    }
+
+    window.sendMessage = function() {
+        if (!inputEl || !inputEl.value.trim()) return;
+
+        const content = inputEl.value.trim();
+        sendBtnEl.disabled = true;
+
+        const formData = new FormData();
+        formData.append('content', content);
+        formData.append('csrfmiddlewaretoken', csrfToken);
+
+        fetch(sendUrl, { method: 'POST', body: formData })
+            .then(res => res.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                } else {
+                    appendMessage(data);
+                    inputEl.value = '';
+                    inputEl.style.height = 'auto';
+                }
+            })
+            .catch(err => console.error('Send error:', err))
+            .finally(() => { sendBtnEl.disabled = false; inputEl.focus(); });
+    };
+
+    function pollMessages() {
+        fetch(pollUrl + '?after_id=' + lastMsgId)
+            .then(res => res.json())
+            .then(data => {
+                if (data.messages && data.messages.length > 0) {
+                    data.messages.forEach(msg => {
+                        if (!messagesEl.querySelector('[data-msg-id="' + msg.id + '"]')) {
+                            appendMessage(msg);
+                        }
+                    });
+                }
+                if (data.is_closed && pollInterval) {
+                    clearInterval(pollInterval);
+                    pollInterval = null;
+                }
+            })
+            .catch(err => console.error('Poll error:', err));
+    }
+
+    if (inputEl) {
+        inputEl.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 100) + 'px';
+        });
+    }
+
+    initLastMsgId();
+    scrollToBottom();
+
+    if (!isClosed) {
+        pollInterval = setInterval(pollMessages, 5000);
+    }
+})();
+</script>
+{% endblock %}

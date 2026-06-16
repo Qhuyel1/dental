@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block title %}Nhật ký thao tác{% endblock %}
+{% block page_title %}Nhật ký thao tác{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <form class="filter-form" method="get">
+            <input class="form-control" type="text" name="q" value="{{ keyword }}" placeholder="Tìm người dùng, đối tượng, đường dẫn, IP">
+            <select name="action">
+                <option value="">Tất cả hành động</option>
+                {% for value, label in action_choices %}
+                    <option value="{{ value }}"{% if selected_action == value %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Tìm kiếm</button>
+            {% if keyword or selected_action %}<a class="button secondary" href="{% url 'users:security-event-list' %}">Xóa lọc</a>{% endif %}
+        </form>
+    </div>
+
+    <div class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Thời điểm</th>
+                        <th>Người dùng</th>
+                        <th>Hành động</th>
+                        <th>Đối tượng</th>
+                        <th>Đường dẫn</th>
+                        <th>IP</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in events %}
+                        <tr>
+                            <td>{{ event.created_at|date:"d/m/Y H:i:s" }}</td>
+                            <td>{{ event.actor.username|default:event.username|default:"-" }}</td>
+                            <td><span class="badge active">{{ event.get_action_display }}</span></td>
+                            <td>
+                                {{ event.target_model|default:"-" }}
+                                {% if event.target_repr %}<div class="help-text">{{ event.target_repr }}</div>{% endif %}
+                                {% if event.message %}<div class="help-text">{{ event.message }}</div>{% endif %}
+                            </td>
+                            <td>{{ event.request_method }} {{ event.path|default:"-" }}</td>
+                            <td>{{ event.ip_address|default:"-" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="6">Chưa có nhật ký phù hợp.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include "includes/pagination.html" %}
+{% endblock %}

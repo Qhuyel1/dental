@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Xóa ca làm việc{% endblock %}
+{% block page_title %}Xóa ca làm việc{% endblock %}
+
+{% block content %}
+    <form class="panel" method="post">
+        {% csrf_token %}
+        <div class="panel-body">
+            <div class="danger-zone">
+                <p>Bạn đang xóa ca <strong>{{ object.name }}</strong> của {{ object.get_weekday_display }}.</p>
+            </div>
+            <div class="actions" style="margin-top: 18px;">
+                <button class="danger icon-button icon-delete" type="submit" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></button>
+                <a class="button secondary" href="{% url 'clinic:work-shift-list' %}">Hủy</a>
+            </div>
+        </div>
+    </form>
+{% endblock %}

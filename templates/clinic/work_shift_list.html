@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Ca làm việc{% endblock %}
+{% block page_title %}Thiết lập ca làm việc{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Tổng cộng {{ paginator.count }} ca làm việc</p>{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <form class="filter-form" method="get">
+            <select name="weekday">
+                <option value="">Tất cả ngày</option>
+                {% for value, label in weekday_choices %}
+                    <option value="{{ value }}" {% if selected_weekday == value|stringformat:"s" %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="status">
+                <option value="">Tất cả trạng thái</option>
+                <option value="active" {% if selected_status == "active" %}selected{% endif %}>Đang sử dụng</option>
+                <option value="inactive" {% if selected_status == "inactive" %}selected{% endif %}>Ngưng</option>
+            </select>
+            <button type="submit">Lọc</button>
+            {% if selected_weekday or selected_status %}<a class="button secondary" href="{% url 'clinic:work-shift-list' %}">Xóa lọc</a>{% endif %}
+        </form>
+        {% if perms.clinic.add_workshift %}<a class="button" href="{% url 'clinic:work-shift-create' %}">Thêm ca làm việc</a>{% endif %}
+    </div>
+
+    <div class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ngày</th>
+                        <th>Tên ca</th>
+                        <th>Thời gian</th>
+                        <th>Ghi chú</th>
+                        <th>Trạng thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for shift in work_shifts %}
+                        <tr>
+                            <td>{{ shift.get_weekday_display }}</td>
+                            <td><strong>{{ shift.name }}</strong></td>
+                            <td>{{ shift.start_time|time:"H:i" }} - {{ shift.end_time|time:"H:i" }}</td>
+                            <td>{{ shift.note|default:"-" }}</td>
+                            <td>
+                                {% if shift.is_active %}
+                                    <span class="badge active">Đang dùng</span>
+                                {% else %}
+                                    <span class="badge inactive">Ngưng</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="actions">
+                                    {% if perms.clinic.change_workshift %}<a class="button secondary icon-button icon-edit" href="{% url 'clinic:work-shift-update' shift.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>{% endif %}
+                                    {% if perms.clinic.delete_workshift %}<a class="button secondary icon-button icon-delete" href="{% url 'clinic:work-shift-delete' shift.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>{% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="6">Chưa có ca làm việc phù hợp.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include "includes/pagination.html" %}
+{% endblock %}

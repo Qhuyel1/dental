@@ -1,0 +1,67 @@
+{% extends "portal/base.html" %}
+
+{% block title %}Đơn thuốc — Hồ sơ bệnh nhân{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Lịch sử đơn thuốc</h1>
+    <p>Các đơn thuốc đã được bác sĩ kê cho bạn.</p>
+</div>
+
+<div class="card">
+    {% if prescriptions %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Ngày kê đơn</th>
+                <th>Bác sĩ kê đơn</th>
+                <th>Chi tiết thuốc</th>
+                <th>Lời dặn</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pres in prescriptions %}
+            <tr>
+                <td><strong>{{ pres.created_at|date:"d/m/Y" }}</strong></td>
+                <td>{{ pres.doctor.full_name }}</td>
+                <td>
+                    <ul style="margin: 0; padding-left: 16px;">
+                    {% for item in pres.items.all %}
+                        <li><strong>{{ item.medicine.name }}</strong>: {{ item.quantity }} {{ item.medicine.unit }}<br>
+                        <small style="color: var(--muted);">{{ item.usage_instruction }}</small></li>
+                    {% empty %}
+                        <li>—</li>
+                    {% endfor %}
+                    </ul>
+                </td>
+                <td>{{ pres.note|default:"—"|linebreaksbr }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if is_paginated %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}">Trước</a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="current">{{ num }}</span>
+            {% else %}
+                <a href="?page={{ num }}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Sau</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <p>Chưa có đơn thuốc nào được ghi nhận.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

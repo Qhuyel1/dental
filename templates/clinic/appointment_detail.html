@@ -1,0 +1,187 @@
+{% extends "base.html" %}
+
+{% block title %}{{ appointment.appointment_code }}{% endblock %}
+{% block page_title %}{{ appointment.appointment_code }}{% endblock %}
+{% block page_subtitle %}
+    <p class="page-subtitle">{{ appointment.doctor_schedule.work_date|date:"d/m/Y" }} · {{ appointment.start_time|time:"H:i" }} - {{ appointment.end_time|time:"H:i" }}</p>
+{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <div></div>
+        <div class="actions">
+            {% if perms.clinic.add_invoice %}<a class="button secondary" href="{% url 'clinic:invoice-create' %}?appointment={{ appointment.pk }}">Tạo hóa đơn</a>{% endif %}
+            <a class="button secondary" href="{% url 'clinic:prescription-create' %}?appointment={{ appointment.pk }}">Kê đơn thuốc</a>
+            <a class="button secondary" href="{% url 'clinic:appointment-ticket' appointment.pk %}" target="_blank" rel="noopener">In phiếu tiếp đón</a>
+            {% if perms.clinic.change_appointment %}<a class="button secondary icon-button icon-edit" href="{% url 'clinic:appointment-update' appointment.pk %}" title="Chỉnh sửa" aria-label="Chỉnh sửa"><span class="sr-only">Chỉnh sửa</span></a>{% endif %}
+            {% if perms.clinic.delete_appointment %}<a class="button secondary icon-button icon-delete" href="{% url 'clinic:appointment-delete' appointment.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>{% endif %}
+            <a class="button secondary" href="{% url 'clinic:appointment-list' %}">Danh sách lịch khám</a>
+        </div>
+    </div>
+
+    {% if medical_alerts or admin_alerts %}
+        <div class="panel panel-body" style="margin-bottom: 16px;">
+            <div class="form-grid">
+                <div>
+                    <div class="form-row">
+                        <label>Cảnh báo y tế</label>
+                        <p>{% if medical_alerts %}{{ medical_alerts|join:", " }}{% else %}-{% endif %}</p>
+                    </div>
+                </div>
+                <div>
+                    <div class="form-row">
+                        <label>Cảnh báo hành chính</label>
+                        <p>{% if admin_alerts %}{{ admin_alerts|join:", " }}{% else %}-{% endif %}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="panel panel-body">
+        <div class="form-grid">
+            <div>
+                <div class="form-row">
+                    <label>Bệnh nhân</label>
+                    <p><strong>{{ appointment.patient.full_name }}</strong> ({{ appointment.patient.patient_code }})</p>
+                </div>
+                <div class="form-row">
+                    <label>Liên hệ</label>
+                    <p>{{ appointment.patient.phone|default:"-" }}{% if appointment.patient.email %}<br>{{ appointment.patient.email }}{% endif %}</p>
+                </div>
+                <div class="form-row">
+                    <label>Dịch vụ dự kiến</label>
+                    <p>{{ appointment.service.name|default:"-" }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Nguồn tiếp nhận</label>
+                    <p>{{ appointment.get_arrival_type_display }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Phân loại lượt khám</label>
+                    <p>{{ appointment.get_visit_type_display }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Lý do khám</label>
+                    <p>{{ appointment.chief_complaint|default:"-" }}</p>
+                </div>
+            </div>
+            <div>
+                <div class="form-row">
+                    <label>Bác sĩ</label>
+                    <p><strong>{{ appointment.doctor_schedule.doctor.full_name }}</strong></p>
+                </div>
+                <div class="form-row">
+                    <label>Ca trực</label>
+                    <p>{{ appointment.doctor_schedule.shift.name }} - {{ appointment.doctor_schedule.shift.get_weekday_display }}<br>{{ appointment.doctor_schedule.shift.start_time|time:"H:i" }} - {{ appointment.doctor_schedule.shift.end_time|time:"H:i" }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Trạng thái</label>
+                    <p><span class="badge active">{{ appointment.get_status_display }}</span></p>
+                </div>
+                <div class="form-row">
+                    <label>Hệ số ca phức tạp</label>
+                    <p>
+                        {% if appointment.complexity %}
+                            Hệ số: <strong>{{ appointment.complexity.complexity_coefficient }}</strong>
+                            {% if appointment.complexity.note %}<span class="help-text"> ({{ appointment.complexity.note }})</span>{% endif %}
+                            {% if perms.users.manage_payroll %} · <a href="{% url 'payroll:complexity-create' appointment.pk %}" style="font-weight: bold; color: var(--primary);">[Cập nhật]</a>{% endif %}
+                        {% else %}
+                            Chưa thiết lập{% if perms.users.manage_payroll %} · <a href="{% url 'payroll:complexity-create' appointment.pk %}" style="font-weight: bold; color: var(--primary);">[Nhập hệ số]</a>{% endif %}
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="form-row">
+                    <label>Mức độ ưu tiên</label>
+                    <p>{{ appointment.get_priority_level_display }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Tiếp đón / hàng chờ</label>
+                    <p>
+                        {% if appointment.checked_in_at %}
+                            STT {{ appointment.queue_number|default:"-" }} · {{ appointment.checked_in_at|date:"d/m/Y H:i" }}
+                            {% if appointment.checked_in_by %}<br>{{ appointment.checked_in_by.username }}{% endif %}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="form-row">
+                    <label>Ghi chú</label>
+                    <p style="white-space: pre-wrap;">{{ appointment.note|default:"-" }}</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-top: 16px; color: var(--muted); font-size: 13px;">
+            Tạo lúc: {{ appointment.created_at|date:"d/m/Y H:i" }} -
+            Cập nhật: {{ appointment.updated_at|date:"d/m/Y H:i" }}
+        </div>
+    </div>
+
+    {% if perms.clinic.view_invoice %}
+    <div class="panel panel-body" style="margin-top: 16px;">
+        <div class="toolbar">
+            <h2 style="font-size: 20px; margin: 0;">Hóa đơn</h2>
+            {% if perms.clinic.add_invoice %}<a class="button secondary" href="{% url 'clinic:invoice-create' %}?appointment={{ appointment.pk }}">Tạo hóa đơn</a>{% endif %}
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã hóa đơn</th>
+                        <th>Ngày lập</th>
+                        <th>Tổng chi phí</th>
+                        <th>Còn nợ</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for invoice in invoices %}
+                        <tr>
+                            <td><a href="{% url 'clinic:invoice-detail' invoice.pk %}">{{ invoice.invoice_code }}</a></td>
+                            <td>{{ invoice.issue_date|date:"d/m/Y" }}</td>
+                            <td>{{ invoice.total_amount|floatformat:0 }} VND</td>
+                            <td>{{ invoice.outstanding_amount|floatformat:0 }} VND</td>
+                            <td>{{ invoice.get_status_display }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="5">Chưa có hóa đơn cho lịch khám này.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="panel panel-body" style="margin-top: 16px;">
+        <div class="toolbar">
+            <h2 style="font-size: 20px; margin: 0;">Đơn thuốc</h2>
+            <a class="button secondary" href="{% url 'clinic:prescription-create' %}?appointment={{ appointment.pk }}">Kê đơn thuốc</a>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Ngày kê</th>
+                        <th>Bác sĩ</th>
+                        <th>Chẩn đoán</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prescription in prescriptions %}
+                        <tr>
+                            <td><a href="{% url 'clinic:prescription-detail' prescription.pk %}">{{ prescription.prescription_code }}</a></td>
+                            <td>{{ prescription.prescribed_at|date:"d/m/Y" }}</td>
+                            <td>{{ prescription.doctor.full_name|default:"—" }}</td>
+                            <td>{{ prescription.diagnosis|default:"—" }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="4">Chưa có đơn thuốc cho lịch khám này.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

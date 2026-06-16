@@ -1,0 +1,911 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Đăng nhập - Dental Management</title>
+    
+    <!-- Import Google Font Outfit for modern premium SaaS typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <style>
+        /* Standalone Breathtaking Enterprise Split Screen Login Layout */
+        :root {
+            --primary: #0f766e; /* Gorgeous teal color from the reference image */
+            --primary-hover: #0d5e58;
+            --text-dark: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            --bg-light: #f8fafc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body, html {
+            height: 100%;
+            font-family: 'Outfit', sans-serif;
+            background: #ffffff;
+            overflow-x: hidden;
+        }
+
+        /* Split Screen Container */
+        .login-split-container {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        /* ---------------- LEFT PANEL ---------------- */
+        .split-left {
+            width: 44%;
+            background: linear-gradient(135deg, #0d5e58 0%, #0f766e 100%);
+            padding: 60px;
+            color: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Dark clean overlay with dental office visual hint */
+        .split-left::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: radial-gradient(circle at 70% 30%, rgba(255, 255, 255, 0.05) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .left-logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            z-index: 2;
+        }
+
+        .left-logo-icon {
+            width: 34px;
+            height: 34px;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .left-logo-icon svg {
+            width: 20px;
+            height: 20px;
+            fill: #ffffff;
+        }
+
+        .left-middle-content {
+            margin: auto 0;
+            z-index: 2;
+        }
+
+        .left-headline {
+            font-size: 38px;
+            font-weight: 800;
+            line-height: 1.25;
+            letter-spacing: -1px;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .left-description {
+            font-size: 15.5px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.75);
+            margin-bottom: 44px;
+            font-weight: 400;
+        }
+
+        /* Feature bullet points */
+        .left-features-list {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 28px;
+        }
+
+        .feature-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .feature-icon-badge {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        .feature-info {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .feature-title {
+            font-weight: 700;
+            font-size: 14px;
+            color: #ffffff;
+            letter-spacing: -0.1px;
+        }
+
+        .feature-desc {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.4;
+        }
+
+        .left-footer-dots {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 2;
+        }
+
+        .dot-pill {
+            height: 6px;
+            border-radius: 3px;
+            background: rgba(255, 255, 255, 0.25);
+            transition: all 0.3s;
+        }
+
+        .dot-pill.active {
+            width: 24px;
+            background: #ffffff;
+        }
+
+        .dot-pill:not(.active) {
+            width: 6px;
+        }
+
+
+        /* ---------------- RIGHT PANEL ---------------- */
+        .split-right {
+            width: 56%;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 40px 80px;
+            position: relative;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        .right-top-support {
+            display: flex;
+            justify-content: flex-end;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .right-top-support a {
+            color: var(--primary);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.15s;
+        }
+
+        .right-top-support a:hover {
+            color: var(--primary-hover);
+        }
+
+        .right-middle-form-wrapper {
+            margin: auto;
+            width: 100%;
+            max-width: 420px;
+            padding: 30px 0;
+        }
+
+        /* Branding area at the top of the form */
+        .right-brand-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: 28px;
+        }
+
+        .brand-logo-badge {
+            width: 38px;
+            height: 38px;
+            background: var(--primary);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .brand-logo-badge svg {
+            width: 22px;
+            height: 22px;
+            fill: #ffffff;
+        }
+
+        .auth-welcome-headline {
+            font-size: 32px;
+            font-weight: 800;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+            letter-spacing: -0.8px;
+        }
+
+        .auth-welcome-subtitle {
+            color: var(--text-muted);
+            font-size: 14.5px;
+            margin-bottom: 15px;
+            font-weight: 500;
+            letter-spacing: -0.1px;
+        }
+
+        /* Mascot Container sitting below title */
+        .tooth-character-container {
+            position: relative;
+            margin: 10px auto 20px auto;
+            width: 165px;
+            height: 165px;
+            z-index: 20;
+            pointer-events: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Interactive Tooth SVG Styles */
+        .interactive-tooth {
+            width: 100%;
+            height: 100%;
+            overflow: visible;
+        }
+
+        .tooth-wrapper {
+            transform-origin: 80px 148px;
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .left-arm {
+            transform-origin: 38px 78px;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .right-arm {
+            transform-origin: 122px 78px;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .tooth-eyes {
+            transition: transform 0.25s ease;
+        }
+
+        .tooth-mouth {
+            transition: transform 0.3s ease, d 0.3s ease;
+        }
+
+        .tooth-blush {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        /* ANIMATION STATES */
+        .interactive-tooth.state-typing .tooth-wrapper {
+            transform: scale(1.02) translateY(2px);
+        }
+        .interactive-tooth.state-typing .tooth-eyes {
+            transform: translateY(3px) scaleY(0.92);
+        }
+        .interactive-tooth.state-typing .left-arm {
+            transform: rotate(15deg);
+        }
+        .interactive-tooth.state-typing .right-arm {
+            transform: rotate(-15deg);
+        }
+
+        .interactive-tooth.state-covering .left-arm {
+            transform: rotate(115deg) translate(-2px, -8px);
+        }
+        .interactive-tooth.state-covering .right-arm {
+            transform: rotate(-115deg) translate(2px, -8px);
+        }
+        .interactive-tooth.state-covering .tooth-mouth {
+            transform: scaleY(0.6) translateY(3px);
+        }
+        .interactive-tooth.state-covering .tooth-blush {
+            opacity: 0.95;
+            transform: scale(1.15);
+        }
+        .interactive-tooth.state-covering .tooth-wrapper {
+            transform: scale(0.98) translateY(1px);
+        }
+
+        /* Form fields inputs style exactly like the image */
+        .form-field-wrapper {
+            margin-bottom: 20px;
+        }
+
+        .label-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .form-field-wrapper label {
+            font-weight: 600;
+            color: #334155;
+            font-size: 13.5px;
+            letter-spacing: -0.1px;
+        }
+
+        .forgot-pass-link {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--primary);
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .forgot-pass-link:hover {
+            color: var(--primary-hover);
+        }
+
+        .input-container {
+            position: relative;
+            width: 100%;
+        }
+
+        .input-container input {
+            background: #ffffff;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 12px 16px 12px 42px; /* Pad left for field icon */
+            font-size: 14px;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            min-height: 46px;
+            width: 100%;
+            color: var(--text-dark);
+            font-family: 'Outfit', sans-serif;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        .input-container input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
+            outline: none;
+        }
+
+        .input-container .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            pointer-events: none;
+            transition: color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .input-container .input-icon svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Eye toggle button */
+        .toggle-password-btn {
+            position: absolute;
+            right: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: color 0.15s;
+        }
+
+        .toggle-password-btn:hover {
+            color: var(--text-dark);
+        }
+
+        .toggle-password-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .input-container input:focus + .input-icon {
+            color: var(--primary);
+        }
+
+        /* Checkbox styling */
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+
+        .checkbox-wrapper label {
+            font-size: 13.5px;
+            color: #475569;
+            font-weight: 500;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Primary Form Action Button */
+        .auth-submit-btn {
+            width: 100%;
+            background: var(--primary);
+            color: #ffffff;
+            border: none;
+            border-radius: 10px;
+            padding: 13px;
+            font-size: 15.5px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(15, 118, 110, 0.2);
+        }
+
+        .auth-submit-btn:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(15, 118, 110, 0.3);
+        }
+
+        .auth-submit-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Separator line style */
+        .or-separator {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 28px 0;
+            color: #cbd5e1;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .or-separator::before,
+        .or-separator::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid #f1f5f9;
+        }
+
+        .or-separator:not(:empty)::before {
+            margin-right: .75em;
+        }
+
+        .or-separator:not(:empty)::after {
+            margin-left: .75em;
+        }
+
+        .or-separator span {
+            color: #94a3b8;
+        }
+
+        /* Google Sign in Button */
+        .google-signin-btn {
+            width: 100%;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 14.5px;
+            font-weight: 600;
+            color: #334155;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .google-signin-btn:hover {
+            background: #f8fafc;
+            border-color: #cbd5e1;
+        }
+
+        .google-icon {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Validation list errors style */
+        .error-banner {
+            background: #fef2f2;
+            border: 1px solid #fca5a5;
+            color: #b91c1c;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13.5px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            list-style: none;
+        }
+
+        .field-error {
+            color: #b91c1c;
+            font-size: 12.5px;
+            font-weight: 600;
+            margin-top: 6px;
+        }
+
+        .field-error ul {
+            list-style: none;
+        }
+
+        /* Footer credits styles */
+        .right-footer {
+            border-top: 1px solid #f1f5f9;
+            padding-top: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .no-account-text {
+            font-size: 13.5px;
+            color: #475569;
+            font-weight: 500;
+        }
+
+        .no-account-text a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .no-account-text a:hover {
+            color: var(--primary-hover);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12.5px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .footer-links a {
+            color: #64748b;
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+
+        .footer-links a:hover {
+            color: var(--primary);
+        }
+
+        /* Responsive Mobile Layout adjustment */
+        @media (max-width: 991px) {
+            .login-split-container {
+                flex-direction: column;
+            }
+            .split-left {
+                display: none;
+            }
+            .split-right {
+                width: 100%;
+                min-height: 100vh;
+                padding: 40px 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-split-container">
+        
+        <!-- LEFT SIDE: Medical branding split pane -->
+        <section class="split-left">
+            <div class="left-logo-area">
+                <div class="left-logo-icon">
+                    <svg viewBox="0 0 24 24"><path d="M12 2C11.3 2 10 3.2 9.2 5.2C8.3 7.2 8 8.7 8 10.2C8 12.7 9.5 14 12 14C14.5 14 16 12.7 16 10.2C16 8.7 15.7 7.2 14.8 5.2C14 3.2 12.7 2 12 2Z"/><path d="M12 14C9.5 14 8 15.8 8 18.3C8 20.3 9 21.8 10.5 21.8C11.5 21.8 12 20.8 12 19.8C12 20.8 12.5 21.8 13.5 21.8C15 21.8 16 20.3 16 18.3C16 15.8 14.5 14 12 14Z"/></svg>
+                </div>
+                <span>Quản lý nha khoa</span>
+            </div>
+            
+            <div class="left-middle-content">
+                <h2 class="left-headline">Sự chăm sóc chuyên nghiệp kết hợp với công nghệ hiện đại.</h2>
+                <p class="left-description">Quản lý hiệu quả phòng khám nha khoa của bạn với độ chính xác lâm sàng và các công cụ lấy cảm hứng từ bệnh nhân được thiết kế cho tương lai của nha khoa.</p>
+                
+                <div class="left-features-list">
+                    <!-- Bullet 1 -->
+                    <div class="feature-item">
+                        <div class="feature-icon-badge">🛡️</div>
+                        <div class="feature-info">
+                            <span class="feature-title">Độ chính xác lâm sàng</span>
+                            <span class="feature-desc">Tối ưu hóa quy trình chẩn đoán và điều trị..</span>
+                        </div>
+                    </div>
+                    <!-- Bullet 2 -->
+                    <div class="feature-item">
+                        <div class="feature-icon-badge">🛡️</div>
+                        <div class="feature-info">
+                            <span class="feature-title">Tuân thủ HIPAA</span>
+                            <span class="feature-desc">Bảo mật hồ sơ y tế hoàn chỉnh.</span>
+                        </div>
+                    </div>
+                    <!-- Bullet 3 -->
+                    <div class="feature-item">
+                        <div class="feature-icon-badge">⚡</div>
+                        <div class="feature-info">
+                            <span class="feature-title">Phân tích tức thì</span>
+                            <span class="feature-desc">Phân tích dữ liệu y tế ngay lập tức.</span>
+                        </div>
+                    </div>
+                    <!-- Bullet 4 -->
+                    <div class="feature-item">
+                        <div class="feature-icon-badge">👥</div>
+                        <div class="feature-info">
+                            <span class="feature-title">Tập trung vào bệnh nhân</span>
+                            <span class="feature-desc">Chu trình chăm sóc theo tiêu chuẩn quốc tế chu đáo</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="left-footer-dots">
+                <span class="dot-pill active"></span>
+                <span class="dot-pill"></span>
+                <span class="dot-pill"></span>
+            </div>
+        </section>
+
+        <!-- RIGHT SIDE: Modern Clean White Login Pane -->
+        <section class="split-right">
+            <header class="right-top-support">
+                <a href="#" onclick="alert('Technical Support Hotline: 1900-XXXX. Vui lòng liên hệ Admin để được hỗ trợ.'); return false;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;margin-top:2px;"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                    <span>Hỗ trợ kỹ thuật</span>
+                </a>
+            </header>
+            
+            <div class="right-middle-form-wrapper">
+                <div class="right-brand-area">
+                    <div class="brand-logo-badge">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C11.3 2 10 3.2 9.2 5.2C8.3 7.2 8 8.7 8 10.2C8 12.7 9.5 14 12 14C14.5 14 16 12.7 16 10.2C16 8.7 15.7 7.2 14.8 5.2C14 3.2 12.7 2 12 2Z"/><path d="M12 14C9.5 14 8 15.8 8 18.3C8 20.3 9 21.8 10.5 21.8C11.5 21.8 12 20.8 12 19.8C12 20.8 12.5 21.8 13.5 21.8C15 21.8 16 20.3 16 18.3C16 15.8 14.5 14 12 14Z"/></svg>
+                    </div>
+                    <span>Quản lý nha khoa</span>
+                </div>
+                
+                <h1 class="auth-welcome-headline">Chào mừng trở lại</h1>
+                <p class="auth-welcome-subtitle">Vui lòng nhập thông tin đăng nhập của bạn để truy cập cổng thông tin quản lý nha khoa của bạn.</p>
+                
+                <!-- Cartoon Tooth Interactive Character sitting below title and centered -->
+                <div class="tooth-character-container">
+                    <svg id="interactive-tooth" class="interactive-tooth" viewBox="0 0 160 160" xmlns="http://www.w3.org/2000/svg">
+                        <!-- Drop Shadow -->
+                        <ellipse cx="80" cy="146" rx="32" ry="5" fill="rgba(0, 0, 0, 0.08)" />
+                        
+                        <g class="tooth-wrapper">
+                            <!-- Tooth Body -->
+                            <path class="tooth-body" d="M 40,40 
+                                     C 40,14 66,10 80,22 
+                                     C 94,10 120,14 120,40 
+                                     C 120,70 115,100 108,128 
+                                     C 105,140 90,140 86,130 
+                                     C 83,120 80,116 80,116 
+                                     C 80,116 77,120 74,130 
+                                     C 70,140 55,140 52,128 
+                                     C 45,100 40,70 40,40 Z" 
+                                  fill="#ffffff" stroke="#cbd5e1" stroke-width="4.5" />
+                                  
+                            <!-- Cute Blush cheeks -->
+                            <circle class="tooth-blush" cx="54" cy="74" r="8" fill="#ffb7b2" opacity="0.65" style="transform-origin: 54px 74px;" />
+                            <circle class="tooth-blush" cx="106" cy="74" r="8" fill="#ffb7b2" opacity="0.65" style="transform-origin: 106px 74px;" />
+
+                            <!-- Eyes Group -->
+                            <g class="tooth-eyes">
+                                <!-- Left Eye -->
+                                <g class="left-eye">
+                                    <circle cx="64" cy="62" r="7" fill="#1e293b" />
+                                    <circle cx="61.5" cy="59.5" r="2.5" fill="#ffffff" />
+                                </g>
+                                <!-- Right Eye -->
+                                <g class="right-eye">
+                                    <circle cx="96" cy="62" r="7" fill="#1e293b" />
+                                    <circle cx="93.5" cy="59.5" r="2.5" fill="#ffffff" />
+                                </g>
+                            </g>
+
+                            <!-- Smile Mouth -->
+                            <path class="tooth-mouth" d="M 72,76 Q 80,84 88,76" fill="none" stroke="#1e293b" stroke-width="3.5" stroke-linecap="round" style="transform-origin: 80px 78px;" />
+
+                            <!-- Left Arm (Shoulder anchored) -->
+                            <path class="tooth-arm left-arm" d="M 38,78 C 24,78 20,68 22,60" fill="none" stroke="#e2e8f0" stroke-width="8.5" stroke-linecap="round" />
+                            
+                            <!-- Right Arm (Shoulder anchored) -->
+                            <path class="tooth-arm right-arm" d="M 122,78 C 136,78 140,68 138,60" fill="none" stroke="#e2e8f0" stroke-width="8.5" stroke-linecap="round" />
+                        </g>
+                    </svg>
+                </div>
+                
+                <form method="post" novalidate>
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                        <div class="error-banner">
+                            {% for error in form.non_field_errors %}
+                                <li>{{ error }}</li>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                    
+                    <!-- Username Input Field -->
+                    <div class="form-field-wrapper">
+                        <label for="id_username">Email hoặc tên đăng nhập</label>
+                        <div class="input-container">
+                            <span class="input-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                            </span>
+                            <input type="text" name="username" id="id_username" placeholder="clinical.admin@smileclinic.com" value="{{ form.username.value|default:'' }}" required>
+                        </div>
+                        {% if form.username.errors %}
+                            <div class="field-error">{{ form.username.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Password Input Field -->
+                    <div class="form-field-wrapper">
+                        <div class="label-row">
+                            <label for="id_password">Mật khẩu</label>
+                            <a href="#" class="forgot-pass-link" onclick="alert('Vui lòng liên hệ Admin để đặt lại mật khẩu.'); return false;">Quên mật khẩu?</a>
+                        </div>
+                        <div class="input-container">
+                            <span class="input-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                            </span>
+                            <input type="password" name="password" id="id_password" placeholder="•••••••••••••" required>
+                            <button type="button" class="toggle-password-btn" id="toggle-password" aria-label="Toggle Password Visibility">
+                                <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                            </button>
+                        </div>
+                        {% if form.password.errors %}
+                            <div class="field-error">{{ form.password.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Remember device Checkbox -->
+                    <div class="checkbox-wrapper">
+                        <input type="checkbox" name="remember" id="id_remember" checked>
+                        <label for="id_remember">Ghi nhớ thiết bị này trong 30 ngày</label>
+                    </div>
+
+                    <!-- Log In Button -->
+                    <button type="submit" class="auth-submit-btn">
+                        <span>Đăng nhập</span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </button>
+                </form>
+
+                <!-- Custom separators and social sign-in -->
+                <div class="or-separator">
+                    <span>Hoặc đăng nhập bằng</span>
+                </div>
+
+                <button type="button" class="google-signin-btn" onclick="alert('Đăng nhập bằng Google Workspace đang được bảo trì.'); return false;">
+                    <svg viewBox="0 0 24 24" class="google-icon" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                        <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                        <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                        <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
+                    </svg>
+                    <span>Đăng nhập bằng Google Workspace</span>
+                </button>
+            </div>
+            
+            <!-- Right split pane footer -->
+            <footer class="right-footer">
+                <p class="no-account-text">Bạn là Bệnh nhân? <a href="{% url 'portal:login' %}" style="color: var(--primary); font-weight: bold; text-decoration: underline;">Đăng nhập Cổng Bệnh nhân</a></p>
+                <p class="no-account-text" style="margin-top: 4px; font-size: 13px;">Bạn chưa có tài khoản?<a href="#" onclick="alert('Vui lòng liên hệ Admin để tạo tài khoản.'); return false;">Contact Administrator</a></p>
+                <div class="footer-links" style="margin-top: 10px;">
+                    <a href="#">Chính sách bảo mật</a>
+                    <a href="#">Điều khoản dịch vụ</a>
+                </div>
+            </footer>
+        </section>
+
+    </div>
+
+    <!-- Active interactive animation state controller -->
+    <script>
+        (function () {
+            const usernameInput = document.getElementById('id_username');
+            const passwordInput = document.getElementById('id_password');
+            const toothCharacter = document.getElementById('interactive-tooth');
+            const togglePassword = document.getElementById('toggle-password');
+
+            if (usernameInput && passwordInput && toothCharacter) {
+                // Focus on username -> look down typing state
+                usernameInput.addEventListener('focus', () => {
+                    toothCharacter.classList.remove('state-covering');
+                    toothCharacter.classList.add('state-typing');
+                });
+                usernameInput.addEventListener('blur', () => {
+                    toothCharacter.classList.remove('state-typing');
+                });
+
+                // Focus on password -> shy cover eyes state
+                passwordInput.addEventListener('focus', () => {
+                    toothCharacter.classList.remove('state-typing');
+                    toothCharacter.classList.add('state-covering');
+                });
+                passwordInput.addEventListener('blur', () => {
+                    toothCharacter.classList.remove('state-covering');
+                });
+            }
+
+            // Interactive Password show/hide toggle
+            if (togglePassword && passwordInput) {
+                togglePassword.addEventListener('click', function () {
+                    const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                    passwordInput.setAttribute('type', type);
+                    
+                    if (type === 'text') {
+                        togglePassword.innerHTML = `<svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`;
+                    } else {
+                        togglePassword.innerHTML = `<svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+                    }
+                });
+            }
+        })();
+    </script>
+</body>
+</html>

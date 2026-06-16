@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Cập nhật người dùng{% else %}Thêm người dùng{% endif %}{% endblock %}
+{% block page_title %}{% if object %}Cập nhật người dùng{% else %}Thêm người dùng{% endif %}{% endblock %}
+
+{% block content %}
+    {% if reset_credentials %}
+        <div class="panel panel-body" style="margin-bottom: 16px; background: var(--warning-bg); border-color: #fed7aa;">
+            <div class="form-row" style="margin-bottom: 0;">
+                <label>Mật khẩu tạm thời mới</label>
+                <p style="margin: 0;">
+                    Username: <strong>{{ reset_credentials.username }}</strong><br>
+                    Mật khẩu: <strong>{{ reset_credentials.password }}</strong><br>
+                    <span class="help-text">Mật khẩu này chỉ hiển thị một lần. Người dùng sẽ bị buộc đổi mật khẩu ở lần đăng nhập kế tiếp.</span>
+                </p>
+            </div>
+        </div>
+    {% endif %}
+    {% if object and object.staff_profile %}
+        <div class="panel panel-body" style="margin-bottom: 16px;">
+            <div class="form-grid">
+                <div class="form-row">
+                    <label>Hồ sơ nhân sự liên kết</label>
+                    <p>
+                        <strong>{{ object.staff_profile.full_name }}</strong><br>
+                        <span class="help-text">{{ object.staff_profile.employee_code }} - {{ object.staff_profile.get_role_display }}</span>
+                    </p>
+                </div>
+                <div class="form-row">
+                    <label>Ghi chú</label>
+                    <p class="help-text">Nếu cập nhật lại hồ sơ bác sĩ / nhân viên, email, trạng thái hoạt động và nhóm quyền của tài khoản này sẽ được đồng bộ lại từ hồ sơ liên kết.</p>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+    {% if object %}
+        <div class="toolbar" style="margin-bottom: 16px;">
+            <div></div>
+            <div class="actions">
+                <form class="inline-form" method="post" action="{% url 'users:user-reset-password' object.pk %}">
+                    {% csrf_token %}
+                    <button class="secondary" type="submit">Reset mật khẩu tạm thời</button>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+    <form class="panel" method="post">
+        {% csrf_token %}
+        <div class="panel-body">
+            <div class="form-grid">
+                {% include "includes/form_fields.html" %}
+            </div>
+            <div class="toolbar" style="margin: 22px 0 0;">
+                <div class="actions">
+                    <button type="submit">Lưu</button>
+                    <a class="button secondary" href="{% url 'users:user-list' %}">Hủy</a>
+                </div>
+            </div>
+        </div>
+    </form>
+{% endblock %}

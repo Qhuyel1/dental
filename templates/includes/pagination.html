@@ -1,0 +1,39 @@
+{% if is_paginated %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a class="button secondary" href="?page={{ page_obj.previous_page_number }}{% if pagination_query %}&{{ pagination_query }}{% elif keyword %}&q={{ keyword }}{% endif %}">Trước</a>
+        {% endif %}
+
+        <div class="pagination-pages">
+            {% if paginator.num_pages <= 7 %}
+                {% for page_number in paginator.page_range %}
+                    {% if page_number == page_obj.number %}
+                        <span class="pagination-current">{{ page_number }}</span>
+                    {% else %}
+                        <a class="pagination-link" href="?page={{ page_number }}{% if pagination_query %}&{{ pagination_query }}{% elif keyword %}&q={{ keyword }}{% endif %}">{{ page_number }}</a>
+                    {% endif %}
+                {% endfor %}
+            {% else %}
+                {% with page_start=page_obj.number|add:"-2" page_end=page_obj.number|add:"2" %}
+                    {% for page_number in paginator.page_range %}
+                        {% if page_number == 1 or page_number == paginator.num_pages or page_number >= page_start and page_number <= page_end %}
+                            {% if page_number == page_obj.number %}
+                                <span class="pagination-current">{{ page_number }}</span>
+                            {% else %}
+                                <a class="pagination-link" href="?page={{ page_number }}{% if pagination_query %}&{{ pagination_query }}{% elif keyword %}&q={{ keyword }}{% endif %}">{{ page_number }}</a>
+                            {% endif %}
+                        {% elif page_number == page_start|add:"-1" or page_number == page_end|add:"1" %}
+                            <span class="pagination-ellipsis">...</span>
+                        {% endif %}
+                    {% endfor %}
+                {% endwith %}
+            {% endif %}
+        </div>
+
+        <span class="pagination-meta">Trang {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+
+        {% if page_obj.has_next %}
+            <a class="button secondary" href="?page={{ page_obj.next_page_number }}{% if pagination_query %}&{{ pagination_query }}{% elif keyword %}&q={{ keyword }}{% endif %}">Sau</a>
+        {% endif %}
+    </div>
+{% endif %}

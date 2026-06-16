@@ -1,0 +1,103 @@
+{% extends "portal/base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Thông tin cá nhân" %} — {% translate "Hồ sơ bệnh nhân" %}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>{% translate "Thông tin cá nhân" %}</h1>
+    <p>{% translate "Thông tin hồ sơ bệnh nhân của bạn tại phòng khám." %}</p>
+</div>
+
+<div class="card">
+    <div class="card-title">{% translate "Thông tin cơ bản" %}</div>
+    <div class="info-grid">
+        <div class="info-item">
+            <div class="info-label">{% translate "Họ và tên" %}</div>
+            <div class="info-value">{{ patient.full_name }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">{% translate "Mã bệnh nhân" %}</div>
+            <div class="info-value">{{ patient.patient_code }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">{% translate "Ngày sinh" %}</div>
+            <div class="info-value">{{ patient.date_of_birth|date:"d/m/Y"|default:"—" }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">{% translate "Giới tính" %}</div>
+            <div class="info-value">{{ patient.get_gender_display|default:"—" }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">{% translate "Số điện thoại" %}</div>
+            <div class="info-value">{{ patient.phone|default:"—" }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">{% translate "Email" %}</div>
+            <div class="info-value">{{ patient.email|default:"—" }}</div>
+        </div>
+        <div class="info-item" style="grid-column: 1 / -1;">
+            <div class="info-label">{% translate "Địa chỉ" %}</div>
+            <div class="info-value">{{ patient.address|default:"—" }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">{% translate "Nghề nghiệp" %}</div>
+            <div class="info-value">{{ patient.occupation|default:"—" }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">{% translate "Nhóm máu" %}</div>
+            <div class="info-value">{{ patient.blood_type|default:"—" }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">{% translate "Thông tin y tế" %}</div>
+    <div class="info-grid">
+        <div class="info-item" style="grid-column: 1 / -1;">
+            <div class="info-label">{% translate "Tiền sử bệnh" %}</div>
+            <div class="info-value">
+                {% if patient.medical_history %}
+                    {{ patient.medical_history|linebreaksbr }}
+                {% else %}
+                    {% translate "Không có ghi chú" %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="info-item" style="grid-column: 1 / -1;">
+            <div class="info-label">{% translate "Thuốc đang sử dụng" %}</div>
+            <div class="info-value">
+                {% if patient.current_medications %}
+                    {{ patient.current_medications|linebreaksbr }}
+                {% else %}
+                    {% translate "Không có" %}
+                {% endif %}
+            </div>
+        </div>
+        <div class="info-item" style="grid-column: 1 / -1;">
+            <div class="info-label">{% translate "Dị ứng / ghi chú y tế" %}</div>
+            <div class="info-value">
+                {% if patient.allergy_note %}
+                    {{ patient.allergy_note|linebreaksbr }}
+                {% else %}
+                    {% translate "Không có" %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-title">{% translate "Liên hệ khẩn cấp" %}</div>
+    <div class="info-grid">
+        <div class="info-item">
+            <div class="info-label">{% translate "Người liên hệ" %}</div>
+            <div class="info-value">{{ patient.emergency_contact_name|default:"—" }}</div>
+        </div>
+        <div class="info-item">
+            <div class="info-label">{% translate "Số điện thoại" %}</div>
+            <div class="info-value">{{ patient.emergency_contact_phone|default:"—" }}</div>
+        </div>
+    </div>
+</div>
+{% endblock %}

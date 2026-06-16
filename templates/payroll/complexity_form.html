@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block title %}Nhập hệ số ca phức tạp — {{ appointment.appointment_code }}{% endblock %}
+{% block page_title %}Hệ số ca phức tạp{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Lượt khám {{ appointment.appointment_code }}</p>{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px;">
+    <div class="panel" style="margin-bottom: 16px;">
+        <div class="panel-body">
+            <dl class="detail-list">
+                <div class="detail-row">
+                    <dt>Bệnh nhân</dt>
+                    <dd>{{ appointment.patient.full_name }}</dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Bác sĩ</dt>
+                    <dd>{{ appointment.doctor.full_name }}</dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Ngày khám</dt>
+                    <dd>{{ appointment.appointment_date|date:"d/m/Y" }} — {{ appointment.doctor_schedule.shift.name }}</dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Giờ khám</dt>
+                    <dd>{{ appointment.start_time|time:"H:i" }} – {{ appointment.end_time|time:"H:i" }}</dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-body">
+            <h2 style="font-size: 18px; margin: 0 0 20px;">
+                {% if object %}Cập nhật hệ số{% else %}Nhập hệ số phức tạp{% endif %}
+            </h2>
+            <form method="post" novalidate>
+                {% csrf_token %}
+                {% for field in form %}
+                    {% if not field.is_hidden %}
+                    <div class="field-group" style="margin-bottom: 18px;">
+                        <label class="field-label" for="{{ field.id_for_label }}">
+                            {{ field.label }}{% if field.field.required %} <span style="color: var(--danger);">*</span>{% endif %}
+                        </label>
+                        {{ field }}
+                        {% if field.help_text %}<p class="field-help">{{ field.help_text }}</p>{% endif %}
+                        {% for error in field.errors %}<p class="field-error">{{ error }}</p>{% endfor %}
+                    </div>
+                    {% else %}
+                        {{ field }}
+                    {% endif %}
+                {% endfor %}
+                {% if form.non_field_errors %}
+                    <div class="message error">{{ form.non_field_errors }}</div>
+                {% endif %}
+                <div style="display: flex; gap: 10px; margin-top: 24px;">
+                    <button type="submit" class="button">💾 Lưu hệ số</button>
+                    <a class="button secondary" href="{% url 'clinic:appointment-detail' appointment.pk %}">Hủy</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="panel" style="margin-top: 14px; padding: 14px 18px;">
+        <p style="margin: 0; color: var(--muted); font-size: 13px;">
+            💡 <strong>Hướng dẫn:</strong> Hệ số phức tạp từ <strong>0.00</strong> (thông thường) đến <strong>0.50</strong> (rất phức tạp).
+            Giá trị này ảnh hưởng đến <em>Tổng hệ số bệnh nhân</em> khi tính lương ca trực.
+        </p>
+    </div>
+</div>
+{% endblock %}

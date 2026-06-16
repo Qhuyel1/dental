@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+
+{% block title %}Lịch khám{% endblock %}
+{% block page_title %}Theo dõi lịch khám{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Tổng cộng {{ paginator.count }} lịch khám</p>{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <form class="filter-form" method="get">
+            <input class="form-control" type="text" name="q" value="{{ keyword }}" placeholder="Tìm mã lịch, bệnh nhân, điện thoại, lý do khám">
+            <input class="form-control" type="date" name="date_from" value="{{ selected_date_from }}">
+            <input class="form-control" type="date" name="date_to" value="{{ selected_date_to }}">
+            <select name="doctor">
+                <option value="">Tất cả bác sĩ</option>
+                {% for doctor in doctors %}
+                    <option value="{{ doctor.pk }}" {% if selected_doctor == doctor.pk|stringformat:"s" %}selected{% endif %}>{{ doctor.full_name }}</option>
+                {% endfor %}
+            </select>
+            <select name="status">
+                <option value="">Tất cả trạng thái</option>
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Lọc</button>
+            {% if keyword or selected_date_from or selected_date_to or selected_doctor or selected_status %}<a class="button secondary" href="{% url 'clinic:appointment-list' %}">Xóa lọc</a>{% endif %}
+        </form>
+        <div class="actions">
+            <a class="button secondary" href="{% url 'clinic:appointment-calendar' %}">Xem lịch tuần</a>
+            {% if perms.clinic.add_appointment %}<a class="button" href="{% url 'clinic:appointment-create' %}">Đăng ký lịch khám</a>{% endif %}
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã lịch</th>
+                        <th>Ngày giờ</th>
+                        <th>Bệnh nhân</th>
+                        <th>Bác sĩ</th>
+                        <th>Dịch vụ / lý do</th>
+                        <th>Trạng thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in appointments %}
+                        <tr>
+                            <td><a href="{% url 'clinic:appointment-detail' appointment.pk %}">{{ appointment.appointment_code }}</a></td>
+                            <td>
+                                {{ appointment.doctor_schedule.work_date|date:"d/m/Y" }}<br>
+                                <span class="help-text">{{ appointment.start_time|time:"H:i" }} - {{ appointment.end_time|time:"H:i" }}</span>
+                            </td>
+                            <td>
+                                <strong>{{ appointment.patient.full_name }}</strong><br>
+                                <span class="help-text">{{ appointment.patient.patient_code }}{% if appointment.patient.phone %} - {{ appointment.patient.phone }}{% endif %}</span>
+                            </td>
+                            <td>
+                                {{ appointment.doctor_schedule.doctor.full_name }}<br>
+                                <span class="help-text">{{ appointment.doctor_schedule.shift.name }}</span>
+                            </td>
+                            <td>
+                                {{ appointment.service.name|default:"-" }}
+                                {% if appointment.chief_complaint %}<br><span class="help-text">{{ appointment.chief_complaint }}</span>{% endif %}
+                            </td>
+                            <td>
+                                {% if appointment.status == "scheduled" or appointment.status == "confirmed" or appointment.status == "checked_in" %}
+                                    <span class="badge active">{{ appointment.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge inactive">{{ appointment.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary icon-button icon-view" href="{% url 'clinic:appointment-detail' appointment.pk %}" title="Xem" aria-label="Xem"><span class="sr-only">Xem</span></a>
+                                    {% if perms.clinic.change_appointment %}<a class="button secondary icon-button icon-edit" href="{% url 'clinic:appointment-update' appointment.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>{% endif %}
+                                    {% if perms.clinic.delete_appointment %}<a class="button secondary icon-button icon-delete" href="{% url 'clinic:appointment-delete' appointment.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>{% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="7">Chưa có lịch khám phù hợp.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include "includes/pagination.html" %}
+{% endblock %}

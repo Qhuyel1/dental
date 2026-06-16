@@ -1,0 +1,41 @@
+{% if form.non_field_errors %}
+    <div class="form-row full">
+        {{ form.non_field_errors }}
+    </div>
+{% endif %}
+
+{% for field in form %}
+    {% if field.is_hidden %}
+        {{ field }}
+    {% elif field.field.widget.allow_multiple_selected %}
+        <div class="form-row full">
+            <label>{{ field.label }}{% if field.field.required %} <span class="required-mark">*</span>{% endif %}</label>
+            <div class="checkbox-list">
+                {% for choice in field %}
+                    <label class="checkbox-option" for="{{ choice.id_for_label }}">
+                        {{ choice.tag }}
+                        <span>{{ choice.choice_label }}</span>
+                    </label>
+                {% endfor %}
+            </div>
+            {% if field.help_text %}<div class="help-text">{{ field.help_text }}</div>{% endif %}
+            {{ field.errors }}
+        </div>
+    {% elif field.field.widget.input_type == "checkbox" %}
+        <div class="form-row">
+            <div class="checkbox-row">
+                {{ field }}
+                <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="required-mark">*</span>{% endif %}</label>
+            </div>
+            {% if field.help_text %}<div class="help-text">{{ field.help_text }}</div>{% endif %}
+            {{ field.errors }}
+        </div>
+    {% else %}
+        <div class="form-row">
+            <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="required-mark">*</span>{% endif %}</label>
+            {{ field }}
+            {% if field.help_text %}<div class="help-text">{{ field.help_text }}</div>{% endif %}
+            {{ field.errors }}
+        </div>
+    {% endif %}
+{% endfor %}

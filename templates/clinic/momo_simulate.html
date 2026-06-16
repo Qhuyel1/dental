@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng Thanh Toán MoMo (Giả Lập)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --momo-pink: #ae2070;
+            --momo-pink-hover: #8f175b;
+            --momo-pink-light: #fef0f6;
+            --bg-color: #f7f8fa;
+            --text-dark: #2d3748;
+            --text-muted: #718096;
+            --border-color: #e2e8f0;
+            --success-color: #38a169;
+            --danger-color: #e53e3e;
+            --card-shadow: 0 10px 30px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
+            --gradient: linear-gradient(135deg, #a50064 0%, #d82b88 100%);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-dark);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Top navigation header */
+        .gateway-header {
+            background-color: #white;
+            border-bottom: 1px solid var(--border-color);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .brand-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .momo-badge {
+            width: 44px;
+            height: 44px;
+            background: var(--gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 16px;
+            box-shadow: 0 4px 10px rgba(174, 32, 112, 0.3);
+        }
+
+        .brand-title {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 20px;
+            color: var(--momo-pink);
+        }
+
+        .sandbox-pill {
+            background-color: #edf2f7;
+            color: #4a5568;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 4px 8px;
+            border-radius: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border: 1px solid #cbd5e0;
+        }
+
+        /* Main Container layout */
+        .main-wrapper {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 24px;
+        }
+
+        .checkout-card {
+            background-color: white;
+            border-radius: 20px;
+            box-shadow: var(--card-shadow);
+            width: 100%;
+            max-width: 900px;
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            border: 1px solid rgba(0, 0, 0, 0.03);
+        }
+
+        /* Left Pane: Invoice summary */
+        .summary-pane {
+            padding: 40px;
+            border-right: 1px solid var(--border-color);
+            background-color: #fafbfc;
+        }
+
+        .merchant-section {
+            margin-bottom: 32px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .merchant-avatar {
+            width: 48px;
+            height: 48px;
+            background-color: #ebf8ff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #2b6cb0;
+            font-weight: 600;
+            font-size: 18px;
+        }
+
+        .merchant-details h3 {
+            font-size: 16px;
+            font-weight: 600;
+            color: #2d3748;
+        }
+
+        .merchant-details p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .bill-amount-card {
+            background: var(--gradient);
+            border-radius: 16px;
+            padding: 24px;
+            color: white;
+            margin-bottom: 32px;
+            box-shadow: 0 10px 20px rgba(165, 0, 100, 0.15);
+        }
+
+        .bill-amount-card label {
+            font-size: 13px;
+            opacity: 0.9;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 500;
+        }
+
+        .bill-amount-card .amount-val {
+            font-family: 'Outfit', sans-serif;
+            font-size: 36px;
+            font-weight: 700;
+            margin-top: 4px;
+        }
+
+        .info-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding-bottom: 12px;
+            border-bottom: 1px dashed #e2e8f0;
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .info-row label {
+            font-size: 13px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .info-row span {
+            font-size: 14px;
+            color: var(--text-dark);
+            font-weight: 600;
+            text-align: right;
+        }
+
+        /* Right Pane: Scanner and controls */
+        .gateway-action-pane {
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background-color: white;
+        }
+
+        /* QR Scanner Animation */
+        .scanner-outer {
+            width: 220px;
+            height: 220px;
+            border: 2px solid var(--momo-pink);
+            border-radius: 16px;
+            padding: 12px;
+            position: relative;
+            background-color: white;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 12px rgba(174, 32, 112, 0.05);
+            overflow: hidden;
+        }
+
+        .scanner-outer::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background-color: #00ff66;
+            box-shadow: 0 0 10px #00ff66, 0 0 20px #00ff66;
+            animation: scan 3s infinite linear;
+            z-index: 10;
+        }
+
+        @keyframes scan {
+            0% { top: 0%; }
+            50% { top: 100%; }
+            100% { top: 0%; }
+        }
+
+        .qr-placeholder {
+            width: 100%;
+            height: 100%;
+            background-color: #fafbfc;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        /* Stylized QR Code block inside */
+        .qr-art {
+            width: 130px;
+            height: 130px;
+            opacity: 0.85;
+            background-image: 
+                radial-gradient(circle, #333 30%, transparent 30%),
+                radial-gradient(circle, #333 30%, transparent 30%),
+                radial-gradient(circle, #333 30%, transparent 30%);
+            background-size: 12px 12px;
+            position: relative;
+        }
+
+        .qr-corner {
+            position: absolute;
+            width: 32px;
+            height: 32px;
+            border: 8px solid var(--text-dark);
+            background-color: transparent;
+        }
+
+        .qc-tl { top: 0; left: 0; }
+        .qc-tr { top: 0; right: 0; }
+        .qc-bl { bottom: 0; left: 0; }
+
+        .qr-logo-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 38px;
+            height: 38px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--momo-pink);
+        }
+
+        .qr-logo-overlay span {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 700;
+            font-size: 11px;
+            color: var(--momo-pink);
+        }
+
+        .instruction-text {
+            text-align: center;
+            font-size: 13.5px;
+            color: var(--text-muted);
+            line-height: 1.5;
+            margin-bottom: 32px;
+            max-width: 280px;
+        }
+
+        .timer-display {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--momo-pink);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 24px;
+            background-color: var(--momo-pink-light);
+            padding: 6px 16px;
+            border-radius: 20px;
+        }
+
+        /* Action Buttons */
+        .action-form {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .btn-momo {
+            width: 100%;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-success {
+            background-color: var(--momo-pink);
+            color: white;
+            box-shadow: 0 4px 12px rgba(174, 32, 112, 0.25);
+        }
+
+        .btn-success:hover {
+            background-color: var(--momo-pink-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(174, 32, 112, 0.35);
+        }
+
+        .btn-fail {
+            background-color: transparent;
+            color: #718096;
+            border: 1px solid #cbd5e0;
+        }
+
+        .btn-fail:hover {
+            background-color: #f7f8fa;
+            color: var(--danger-color);
+            border-color: #feb2b2;
+        }
+
+        /* Footer */
+        .gateway-footer {
+            text-align: center;
+            padding: 24px;
+            font-size: 12px;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-color);
+            background-color: white;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .checkout-card {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-pane {
+                border-right: none;
+                border-bottom: 1px solid var(--border-color);
+                padding: 30px 20px;
+            }
+
+            .gateway-action-pane {
+                padding: 40px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header navigation bar -->
+    <header class="gateway-header">
+        <div class="brand-logo-container">
+            <div class="momo-badge">momo</div>
+            <div>
+                <h1 class="brand-title">Cổng Thanh Toán MoMo</h1>
+            </div>
+        </div>
+        <div>
+            <span class="sandbox-pill">Virtual Simulator</span>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-wrapper">
+        <div class="checkout-card">
+            
+            <!-- Left Pane: Bill details -->
+            <section class="summary-pane">
+                <div class="merchant-section">
+                    <div class="merchant-avatar">D</div>
+                    <div class="merchant-details">
+                        <h3>Dental Management</h3>
+                        <p>Nhà cung cấp dịch vụ khám nha khoa</p>
+                    </div>
+                </div>
+
+                <div class="bill-amount-card">
+                    <label>Số tiền thanh toán</label>
+                    <div class="amount-val">{{ payment_transaction.amount|floatformat:0 }} VND</div>
+                </div>
+
+                <div class="info-list">
+                    <div class="info-row">
+                        <label>Đơn hàng / Order ID</label>
+                        <span>{{ payment_transaction.order_id }}</span>
+                    </div>
+                    <div class="info-row">
+                        <label>Mã hóa đơn</label>
+                        <span>{{ invoice.invoice_code }}</span>
+                    </div>
+                    <div class="info-row">
+                        <label>Bệnh nhân</label>
+                        <span>{{ invoice.patient.full_name }}</span>
+                    </div>
+                    <div class="info-row">
+                        <label>Nội dung</label>
+                        <span>Thanh toán hóa đơn {{ invoice.invoice_code }}</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Pane: Actions and simulated QR -->
+            <section class="gateway-action-pane">
+                
+                <!-- Stylized QR scanner box -->
+                <div class="scanner-outer">
+                    <div class="qr-placeholder">
+                        <div class="qr-corner qc-tl"></div>
+                        <div class="qr-corner qc-tr"></div>
+                        <div class="qr-corner qc-bl"></div>
+                        
+                        <!-- Mock QR Art blocks -->
+                        <div class="qr-art"></div>
+                        
+                        <div class="qr-logo-overlay">
+                            <span>momo</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timer-display">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    Đơn hàng hết hạn trong: <span id="countdown">09:59</span>
+                </div>
+
+                <p class="instruction-text">
+                    Đây là cổng thanh toán giả lập dành cho môi trường phát triển local. Vui lòng bấm vào nút bên dưới để chọn kết quả.
+                </p>
+
+                <!-- Actions Form for simulated success/fail POST requests -->
+                <form class="action-form" method="post">
+                    {% csrf_token %}
+                    <button type="submit" name="action" value="success" class="btn-momo btn-success">
+                        Thanh toán Thành công (Simulate Success)
+                    </button>
+                    <button type="submit" name="action" value="fail" class="btn-momo btn-fail">
+                        Thất bại / Hủy bỏ (Simulate Failure)
+                    </button>
+                </form>
+
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer copyright info -->
+    <footer class="gateway-footer">
+        <p>&copy; 2026 MOCK GATEWAY SIMULATOR BY DEEPMIND ANTIGRAVITY. KHÔNG SỬ DỤNG TIỀN THẬT.</p>
+    </footer>
+
+    <!-- Simulated Timer script -->
+    <script>
+        let duration = 600; // 10 minutes in seconds
+        const display = document.querySelector('#countdown');
+        
+        const startTimer = () => {
+            let timer = duration, minutes, seconds;
+            setInterval(() => {
+                minutes = parseInt(timer / 60, 10);
+                seconds = parseInt(timer % 60, 10);
+
+                minutes = minutes < 10 ? "0" + minutes : minutes;
+                seconds = seconds < 10 ? "0" + seconds : seconds;
+
+                display.textContent = minutes + ":" + seconds;
+
+                if (--timer < 0) {
+                    timer = duration;
+                }
+            }, 1000);
+        };
+        
+        window.onload = startTimer;
+    </script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Cập nhật phiếu xuất{% else %}Xuất kho{% endif %}{% endblock %}
+{% block page_title %}{% if object %}Cập nhật phiếu xuất{% else %}Xuất kho{% endif %}{% endblock %}
+{% block page_subtitle %}{% if supply %}<p class="page-subtitle">{{ supply.supply_code }} · {{ supply.name }}</p>{% endif %}{% endblock %}
+
+{% block content %}
+    <form class="panel" method="post">
+        {% csrf_token %}
+        <div class="panel-body">
+            <div class="form-grid">
+                {% include "includes/form_fields.html" %}
+            </div>
+            <div class="actions" style="margin-top: 22px;">
+                <button type="submit">Lưu</button>
+                <a class="button secondary" href="{% url 'clinic:supply-detail' supply.pk %}">Hủy</a>
+            </div>
+        </div>
+    </form>
+{% endblock %}

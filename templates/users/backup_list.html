@@ -1,0 +1,60 @@
+{% extends "base.html" %}
+
+{% block title %}Sao lưu dữ liệu{% endblock %}
+{% block page_title %}Sao lưu dữ liệu{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        {% if perms.users.run_database_backup %}
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit">Tạo bản sao lưu</button>
+            </form>
+        {% endif %}
+    </div>
+
+    <div class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Thời điểm</th>
+                        <th>Tệp</th>
+                        <th>Người tạo</th>
+                        <th>Dung lượng</th>
+                        <th>Trạng thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for backup in backups %}
+                        <tr>
+                            <td>{{ backup.created_at|date:"d/m/Y H:i:s" }}</td>
+                            <td>
+                                {{ backup.file_name }}
+                                {% if backup.note %}<div class="help-text">{{ backup.note }}</div>{% endif %}
+                            </td>
+                            <td>{{ backup.created_by.username|default:"-" }}</td>
+                            <td>{{ backup.size_display }}</td>
+                            <td>
+                                {% if backup.exists_on_disk %}
+                                    <span class="badge active">Sẵn sàng</span>
+                                {% else %}
+                                    <span class="badge danger">Thiếu tệp</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if backup.exists_on_disk and perms.users.download_databasebackup %}
+                                    <a class="button secondary" href="{% url 'users:backup-download' backup.pk %}">Tải xuống</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="6">Chưa có bản sao lưu nào.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include "includes/pagination.html" %}
+{% endblock %}

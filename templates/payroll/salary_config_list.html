@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Cấu hình lương cơ bản{% endblock %}
+{% block page_title %}Cấu hình lương cơ bản{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Thiết lập mức tiền cho một giờ quy đổi</p>{% endblock %}
+
+{% block content %}
+<div class="toolbar">
+    <div></div>
+    <a class="button" href="{% url 'payroll:salary-config-create' %}">+ Thêm cấu hình mới</a>
+</div>
+
+<div class="panel">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Áp dụng từ</th>
+                <th class="text-right">Số tiền / giờ (VNĐ)</th>
+                <th>Ghi chú</th>
+                <th>Ngày tạo</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cfg in configs %}
+            <tr>
+                <td><strong>{{ cfg.effective_from|date:"d/m/Y" }}</strong></td>
+                <td class="text-right"><strong>{{ cfg.hourly_rate|floatformat:0 }}</strong></td>
+                <td>{{ cfg.note|default:"—" }}</td>
+                <td>{{ cfg.created_at|date:"d/m/Y H:i" }}</td>
+                <td class="actions">
+                    <a class="button secondary small" href="{% url 'payroll:salary-config-update' cfg.pk %}">Sửa</a>
+                    <a class="button danger small" href="{% url 'payroll:salary-config-delete' cfg.pk %}">Xóa</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="empty-row">Chưa có cấu hình lương nào. <a href="{% url 'payroll:salary-config-create' %}">Thêm ngay</a>.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+
+{% block title %}{{ invoice.invoice_code }}{% endblock %}
+{% block page_title %}{{ invoice.invoice_code }}{% endblock %}
+{% block page_subtitle %}
+    <p class="page-subtitle">{{ invoice.patient.full_name }} · {{ invoice.issue_date|date:"d/m/Y" }}</p>
+{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <div class="actions">
+            <a class="button secondary" href="{% url 'clinic:invoice-list' %}">Danh sách hóa đơn</a>
+            <a class="button secondary icon-button icon-edit" href="{% url 'clinic:invoice-update' invoice.pk %}" title="Sửa hóa đơn" aria-label="Sửa hóa đơn"><span class="sr-only">Sửa hóa đơn</span></a>
+            <a class="button secondary icon-button icon-pdf" href="{% url 'clinic:invoice-pdf' invoice.pk %}" title="Xuất PDF" aria-label="Xuất PDF"><span class="sr-only">Xuất PDF</span></a>
+        </div>
+        <div class="actions">
+            <a class="button secondary" href="{% url 'clinic:invoice-item-create' invoice.pk %}">Thêm chi phí</a>
+            {% if invoice.outstanding_amount > 0 %}
+                <a class="button" href="{% url 'clinic:payment-create' invoice.pk %}">Ghi nhận thanh toán</a>
+                <a class="button secondary" href="{% url 'clinic:momo-payment-create' invoice.pk %}">Thanh toán MoMo</a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="metric-grid" style="margin-bottom: 16px;">
+        <div class="metric">
+            <div class="metric-value">{{ invoice.total_amount|floatformat:0 }}</div>
+            <div class="metric-label">Tổng chi phí (VND)</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value">{{ invoice.paid_amount|floatformat:0 }}</div>
+            <div class="metric-label">Đã thanh toán (VND)</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value">{{ invoice.outstanding_amount|floatformat:0 }}</div>
+            <div class="metric-label">Còn nợ (VND)</div>
+        </div>
+    </div>
+
+    <div class="panel panel-body" style="margin-bottom: 16px;">
+        <div class="form-grid">
+            <div>
+                <div class="form-row">
+                    <label>Bệnh nhân</label>
+                    <p><a href="{% url 'clinic:patient-detail' invoice.patient.pk %}">{{ invoice.patient.full_name }}</a> ({{ invoice.patient.patient_code }})</p>
+                </div>
+                <div class="form-row">
+                    <label>Lịch khám</label>
+                    <p>{% if invoice.appointment %}<a href="{% url 'clinic:appointment-detail' invoice.appointment.pk %}">{{ invoice.appointment.appointment_code }}</a>{% else %}—{% endif %}</p>
+                </div>
+                <div class="form-row">
+                    <label>Hình thức thanh toán</label>
+                    <p>{{ invoice.get_payment_type_display }}</p>
+                </div>
+            </div>
+            <div>
+                <div class="form-row">
+                    <label>Ngày lập</label>
+                    <p>{{ invoice.issue_date|date:"d/m/Y" }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Ngày hẹn thanh toán</label>
+                    <p>{{ invoice.due_date|date:"d/m/Y"|default:"—" }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Trạng thái</label>
+                    <p>
+                        {% if invoice.status == "paid" %}
+                            <span class="badge active">{{ invoice.get_status_display }}</span>
+                        {% else %}
+                            <span class="badge inactive">{{ invoice.get_status_display }}</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            <div class="form-row full">
+                <label>Ghi chú</label>
+                <p style="white-space: pre-wrap;">{{ invoice.note|default:"—" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel" style="margin-bottom: 16px;">
+        <div class="panel-body">
+            <div class="toolbar">
+                <h2 style="font-size: 20px; margin: 0;">Chi phí điều trị</h2>
+                <a class="button secondary" href="{% url 'clinic:invoice-item-create' invoice.pk %}">Thêm chi phí</a>
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nội dung</th>
+                        <th>Dịch vụ</th>
+                        <th>Số lượng</th>
+                        <th>Đơn giá</th>
+                        <th>Thành tiền</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in invoice.items.all %}
+                        <tr>
+                            <td>{{ item.description }}</td>
+                            <td>{% if item.service %}<a href="{% url 'clinic:service-detail' item.service.pk %}">{{ item.service.name }}</a>{% else %}—{% endif %}</td>
+                            <td>{{ item.quantity }}</td>
+                            <td>{{ item.unit_price|floatformat:0 }} VND</td>
+                            <td><strong>{{ item.line_total|floatformat:0 }} VND</strong></td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary icon-button icon-edit" href="{% url 'clinic:invoice-item-update' item.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>
+                                    <a class="button secondary icon-button icon-delete" href="{% url 'clinic:invoice-item-delete' item.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="6">Chưa có chi phí điều trị.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel">
+        <div class="panel-body">
+            <div class="toolbar">
+                <h2 style="font-size: 20px; margin: 0;">Giao dịch MoMo</h2>
+                {% if invoice.outstanding_amount > 0 %}
+                    <a class="button secondary" href="{% url 'clinic:momo-payment-create' invoice.pk %}">Tạo giao dịch MoMo</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Thời điểm</th>
+                        <th>Số tiền</th>
+                        <th>Trạng thái</th>
+                        <th>Mã giao dịch</th>
+                        <th>Mail biên nhận</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in invoice.payment_transactions.all %}
+                        <tr>
+                            <td>{{ transaction.created_at|date:"d/m/Y H:i" }}</td>
+                            <td>{{ transaction.amount|floatformat:0 }} VND</td>
+                            <td>
+                                {% if transaction.status == "success" %}
+                                    <span class="badge active">{{ transaction.get_status_display }}</span>
+                                {% elif transaction.status == "failed" or transaction.status == "review" %}
+                                    <span class="badge danger">{{ transaction.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge warning">{{ transaction.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ transaction.trans_id|default:transaction.order_id }}</td>
+                            <td>
+                                {% if transaction.receipt_email_sent_at %}
+                                    {{ transaction.receipt_email_sent_at|date:"d/m/Y H:i" }}
+                                {% elif transaction.customer_email %}
+                                    Chờ gửi
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td><a class="button secondary" href="{% url 'clinic:payment-transaction-detail' transaction.pk %}">Xem</a></td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="6">Chưa có giao dịch MoMo nào.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel" style="margin-top: 16px;">
+        <div class="panel-body">
+            <div class="toolbar">
+                <h2 style="font-size: 20px; margin: 0;">Lịch sử thanh toán</h2>
+                {% if invoice.outstanding_amount > 0 %}
+                    <a class="button secondary" href="{% url 'clinic:payment-create' invoice.pk %}">Thêm thanh toán</a>
+                {% endif %}
+            </div>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ngày</th>
+                        <th>Số tiền</th>
+                        <th>Phương thức</th>
+                        <th>Ghi chú</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for payment in invoice.payments.all %}
+                        <tr>
+                            <td>{{ payment.paid_at|date:"d/m/Y" }}</td>
+                            <td>{{ payment.amount|floatformat:0 }} VND</td>
+                            <td>{{ payment.get_method_display }}</td>
+                            <td>{{ payment.note|default:"—" }}</td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary icon-button icon-edit" href="{% url 'clinic:payment-update' payment.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>
+                                    <a class="button secondary icon-button icon-delete" href="{% url 'clinic:payment-delete' payment.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="5">Chưa có thanh toán nào.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

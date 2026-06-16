@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}{{ service.name }} — Dịch vụ{% endblock %}
+{% block page_title %}{{ service.name }}{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Mã: {{ service.code }} — {{ service.category.name }}</p>{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <div></div>
+        <div class="actions">
+            {% if perms.clinic.change_service %}<a class="button secondary icon-button icon-edit" href="{% url 'clinic:service-update' service.pk %}" title="Chỉnh sửa" aria-label="Chỉnh sửa"><span class="sr-only">Chỉnh sửa</span></a>{% endif %}
+            {% if perms.clinic.delete_service %}<a class="button secondary icon-button icon-delete" href="{% url 'clinic:service-delete' service.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>{% endif %}
+            <a class="button secondary" href="{% url 'clinic:service-list' %}">← Danh sách</a>
+        </div>
+    </div>
+
+    <div class="panel panel-body">
+        <div class="form-grid">
+            <div>
+                <div class="form-row">
+                    <label>Mã dịch vụ</label>
+                    <p>{{ service.code }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Tên dịch vụ</label>
+                    <p><strong>{{ service.name }}</strong></p>
+                </div>
+                <div class="form-row">
+                    <label>Danh mục</label>
+                    <p><a href="{% url 'clinic:service-category-detail' service.category.pk %}">{{ service.category.name }}</a></p>
+                </div>
+                <div class="form-row">
+                    <label>Thời lượng dự kiến</label>
+                    <p>{% if service.duration_minutes %}{{ service.duration_minutes }} phút{% else %}—{% endif %}</p>
+                </div>
+            </div>
+            <div>
+                <div class="form-row">
+                    <label>Giá hiện hành</label>
+                    <p>
+                        {% if service.current_price %}
+                            <strong>{{ service.current_price|floatformat:0 }} VND</strong>
+                            <br><span class="help-text">{{ service.current_price_list }}</span>
+                        {% else %}
+                            <span class="help-text">Chưa có giá trong bảng giá đang áp dụng.</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="form-row">
+                    <label>Trạng thái</label>
+                    <p>
+                        {% if service.is_active %}
+                            <span class="badge active">Đang dùng</span>
+                        {% else %}
+                            <span class="badge inactive">Ngưng</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            <div class="form-row full">
+                <label>Mô tả</label>
+                <p style="white-space: pre-wrap;">{{ service.description|default:"—" }}</p>
+            </div>
+        </div>
+        <div style="margin-top: 16px; color: var(--muted); font-size: 13px;">
+            Tạo lúc: {{ service.created_at|date:"d/m/Y H:i" }} —
+            Cập nhật: {{ service.updated_at|date:"d/m/Y H:i" }}
+        </div>
+    </div>
+
+    <div class="panel panel-body" style="margin-top: 16px;">
+        <div class="toolbar">
+            <h2 style="font-size: 20px; margin: 0;">Lịch sử đơn giá</h2>
+            <a class="button secondary" href="{% url 'clinic:price-list-list' %}">Quản lý bảng giá</a>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Bảng giá</th>
+                        <th>Thời gian áp dụng</th>
+                        <th>Đơn giá</th>
+                        <th>Trạng thái</th>
+                        <th>Ghi chú</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in price_history %}
+                        <tr>
+                            <td><a href="{% url 'clinic:price-list-detail' item.price_list.pk %}">{{ item.price_list.name }}</a></td>
+                            <td>
+                                {{ item.price_list.effective_from|date:"d/m/Y" }}
+                                {% if item.price_list.effective_to %} - {{ item.price_list.effective_to|date:"d/m/Y" }}{% endif %}
+                            </td>
+                            <td>{{ item.price|floatformat:0 }} VND</td>
+                            <td>
+                                {% if item.price_list.is_active %}
+                                    <span class="badge active">Đang áp dụng</span>
+                                {% else %}
+                                    <span class="badge inactive">Ngưng</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ item.note|default:"—" }}</td>
+                            <td>
+                                <div class="actions">
+                                    {% if perms.clinic.change_serviceprice %}<a class="button secondary icon-button icon-edit" href="{% url 'clinic:service-price-update' item.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>{% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="6">Chưa có đơn giá nào cho dịch vụ này.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel panel-body" style="margin-top: 16px;">
+        <div class="toolbar">
+            <h2 style="font-size: 20px; margin: 0;">Lịch hẹn gần đây</h2>
+            {% if perms.clinic.add_appointment %}<a class="button secondary" href="{% url 'clinic:appointment-create' %}">Tạo lịch hẹn</a>{% endif %}
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã lịch</th>
+                        <th>Ngày giờ</th>
+                        <th>Bệnh nhân</th>
+                        <th>Bác sĩ</th>
+                        <th>Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in recent_appointments %}
+                        <tr>
+                            <td><a href="{% url 'clinic:appointment-detail' appointment.pk %}">{{ appointment.appointment_code }}</a></td>
+                            <td>{{ appointment.appointment_date|date:"d/m/Y" }}<br><span class="help-text">{{ appointment.start_time|time:"H:i" }} - {{ appointment.end_time|time:"H:i" }}</span></td>
+                            <td>{{ appointment.patient.full_name }}</td>
+                            <td>{{ appointment.doctor.full_name }}</td>
+                            <td>{{ appointment.get_status_display }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="5">Chưa có lịch hẹn nào dùng dịch vụ này.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,85 @@
+{% extends "base.html" %}
+
+{% block title %}Bác sĩ / nhân viên{% endblock %}
+{% block page_title %}Quản lý bác sĩ / nhân viên{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <form class="filter-form" method="get">
+            <input class="form-control" type="text" name="q" value="{{ keyword }}" placeholder="Tìm mã, họ tên, điện thoại, chuyên môn, chứng chỉ">
+            <select name="role">
+                <option value="">Tất cả chức danh</option>
+                {% for value, label in role_choices %}
+                    <option value="{{ value }}" {% if selected_role == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="status">
+                <option value="">Tất cả trạng thái</option>
+                <option value="active" {% if selected_status == "active" %}selected{% endif %}>Đang làm việc</option>
+                <option value="inactive" {% if selected_status == "inactive" %}selected{% endif %}>Ngưng</option>
+            </select>
+            <button type="submit">Tìm kiếm</button>
+            {% if keyword or selected_role or selected_status %}<a class="button secondary" href="{% url 'clinic:staff-list' %}">Xóa lọc</a>{% endif %}
+        </form>
+        {% if perms.clinic.add_staff %}<a class="button" href="{% url 'clinic:staff-create' %}">Thêm bác sĩ / nhân viên</a>{% endif %}
+    </div>
+
+    <div class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã số</th>
+                        <th>Họ tên</th>
+                        <th>Chức danh</th>
+                        <th>Liên hệ</th>
+                        <th>Chuyên môn</th>
+                        <th>Hồ sơ nghề nghiệp</th>
+                        <th>Trạng thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for staff in staff_members %}
+                        <tr>
+                            <td><a href="{% url 'clinic:staff-detail' staff.pk %}">{{ staff.employee_code }}</a></td>
+                            <td>
+                                <strong>{{ staff.full_name }}</strong>
+                                {% if staff.date_of_birth %}<br><span class="help-text">{{ staff.date_of_birth|date:"d/m/Y" }}</span>{% endif %}
+                            </td>
+                            <td>{{ staff.get_role_display }}</td>
+                            <td>
+                                {{ staff.phone|default:"-" }}
+                                {% if staff.email %}<br><span class="help-text">{{ staff.email }}</span>{% endif %}
+                                {% if staff.address %}<br><span class="help-text">{{ staff.address }}</span>{% endif %}
+                            </td>
+                            <td>{{ staff.specialization|default:"-" }}</td>
+                            <td>
+                                {{ staff.degree|default:"-" }}
+                                {% if staff.license_number %}<br><span class="help-text">CCHN: {{ staff.license_number }}</span>{% endif %}
+                                {% if staff.experience_years %}<br><span class="help-text">{{ staff.experience_years }} năm kinh nghiệm</span>{% endif %}
+                            </td>
+                            <td>
+                                {% if staff.is_active %}
+                                    <span class="badge active">Đang làm việc</span>
+                                {% else %}
+                                    <span class="badge inactive">Ngưng</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary icon-button icon-view" href="{% url 'clinic:staff-detail' staff.pk %}" title="Xem" aria-label="Xem"><span class="sr-only">Xem</span></a>
+                                    {% if perms.clinic.change_staff %}<a class="button secondary icon-button icon-edit" href="{% url 'clinic:staff-update' staff.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>{% endif %}
+                                    {% if perms.clinic.delete_staff %}<a class="button secondary icon-button icon-delete" href="{% url 'clinic:staff-delete' staff.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>{% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="8">Chưa có nhân viên phù hợp.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include "includes/pagination.html" %}
+{% endblock %}

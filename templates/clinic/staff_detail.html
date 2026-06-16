@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}{{ staff.full_name }} — Hồ sơ nhân sự{% endblock %}
+{% block page_title %}{{ staff.full_name }}{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Mã: {{ staff.employee_code }} — {{ staff.get_role_display }}</p>{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <div></div>
+        <div class="actions">
+            {% if perms.clinic.change_staff %}<a class="button secondary icon-button icon-edit" href="{% url 'clinic:staff-update' staff.pk %}" title="Chỉnh sửa" aria-label="Chỉnh sửa"><span class="sr-only">Chỉnh sửa</span></a>{% endif %}
+            {% if perms.clinic.delete_staff %}<a class="button secondary icon-button icon-delete" href="{% url 'clinic:staff-delete' staff.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>{% endif %}
+            <a class="button secondary" href="{% url 'clinic:staff-list' %}">← Danh sách</a>
+        </div>
+    </div>
+
+    {% if created_credentials %}
+        <div class="panel panel-body" style="margin-bottom: 16px; background: var(--warning-bg); border-color: #fed7aa;">
+            <div class="form-row" style="margin-bottom: 0;">
+                <label>Thông tin đăng nhập khởi tạo</label>
+                <p style="margin: 0;">
+                    Username: <strong>{{ created_credentials.username }}</strong><br>
+                    Mật khẩu: <strong>{{ created_credentials.password }}</strong><br>
+                    <span class="help-text">Mật khẩu này chỉ hiển thị một lần. Người dùng sẽ bị buộc đổi mật khẩu ở lần đăng nhập đầu tiên.</span>
+                </p>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="panel panel-body">
+        <div class="form-grid">
+            <div>
+                <div class="form-row">
+                    <label>Mã số</label>
+                    <p>{{ staff.employee_code }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Họ tên</label>
+                    <p><strong>{{ staff.full_name }}</strong></p>
+                </div>
+                <div class="form-row">
+                    <label>Chức danh</label>
+                    <p>{{ staff.get_role_display }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Giới tính</label>
+                    <p>{{ staff.get_gender_display|default:"—" }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Ngày sinh</label>
+                    <p>{{ staff.date_of_birth|date:"d/m/Y"|default:"—" }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Trạng thái</label>
+                    <p>
+                        {% if staff.is_active %}
+                            <span class="badge active">Đang làm việc</span>
+                        {% else %}
+                            <span class="badge inactive">Ngưng</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            <div>
+                <div class="form-row">
+                    <label>Số điện thoại</label>
+                    <p>{{ staff.phone|default:"—" }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Email</label>
+                    <p>{{ staff.email|default:"—" }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Địa chỉ</label>
+                    <p>{{ staff.address|default:"—" }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Nơi công tác chính thức</label>
+                    <p>{{ staff.primary_workplace|default:"—" }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Ngày bắt đầu làm việc</label>
+                    <p>{{ staff.start_date|date:"d/m/Y"|default:"—" }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Liên hệ khẩn cấp</label>
+                    <p>
+                        {{ staff.emergency_contact_name|default:"—" }}
+                        {% if staff.emergency_contact_phone %}<br>{{ staff.emergency_contact_phone }}{% endif %}
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-grid" style="margin-top: 16px;">
+            <div class="form-row">
+                <label>Bằng cấp / học hàm học vị</label>
+                <p>{{ staff.degree|default:"—" }}</p>
+            </div>
+            <div class="form-row">
+                <label>Chuyên môn</label>
+                <p>{{ staff.specialization|default:"—" }}</p>
+            </div>
+            <div class="form-row">
+                <label>Số chứng chỉ hành nghề</label>
+                <p>{{ staff.license_number|default:"—" }}</p>
+            </div>
+            <div class="form-row">
+                <label>Số năm kinh nghiệm</label>
+                <p>{% if staff.experience_years %}{{ staff.experience_years }} năm{% else %}—{% endif %}</p>
+            </div>
+        </div>
+
+        <div class="form-grid" style="margin-top: 16px;">
+            <div class="form-row">
+                <label>Tài khoản đăng nhập</label>
+                <p>
+                    {% if staff.user %}
+                        <strong>{{ staff.user.username }}</strong>
+                    {% else %}
+                        —
+                    {% endif %}
+                </p>
+            </div>
+            <div class="form-row">
+                <label>Nhóm quyền</label>
+                <p>
+                    {% if staff.user %}
+                        {% for group in staff.user.groups.all %}
+                            {{ group.name }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            —
+                        {% endfor %}
+                    {% else %}
+                        —
+                    {% endif %}
+                </p>
+            </div>
+            <div class="form-row">
+                <label>Trạng thái tài khoản</label>
+                <p>
+                    {% if staff.user %}
+                        {% if staff.user.is_active %}
+                            <span class="badge active">Đang hoạt động</span>
+                        {% else %}
+                            <span class="badge inactive">Tạm khóa</span>
+                        {% endif %}
+                    {% else %}
+                        —
+                    {% endif %}
+                </p>
+            </div>
+            <div class="form-row">
+                <label>Đổi mật khẩu bắt buộc</label>
+                <p>
+                    {% if staff.user and must_change_password %}
+                        <span class="badge warning">Chờ đổi mật khẩu lần đầu</span>
+                    {% elif staff.user %}
+                        <span class="badge active">Đã hoàn tất</span>
+                    {% else %}
+                        —
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+
+        {% if staff.note %}
+            <div class="form-row" style="margin-top: 16px;">
+                <label>Ghi chú</label>
+                <p style="white-space: pre-wrap;">{{ staff.note }}</p>
+            </div>
+        {% endif %}
+
+        <div style="margin-top: 16px; color: var(--muted); font-size: 13px;">
+            Tạo lúc: {{ staff.created_at|date:"d/m/Y H:i" }} —
+            Cập nhật: {{ staff.updated_at|date:"d/m/Y H:i" }}
+        </div>
+    </div>
+
+    {% if staff.role == "doctor" %}
+        <div class="panel panel-body" style="margin-top: 16px;">
+            <div class="toolbar">
+                <h2 style="font-size: 20px; margin: 0;">Lịch trực gần đây</h2>
+                {% if perms.clinic.add_doctorschedule %}<a class="button secondary" href="{% url 'clinic:doctor-schedule-create' %}">Đăng ký lịch trực</a>{% endif %}
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ngày trực</th>
+                            <th>Ca làm việc</th>
+                            <th>Trạng thái</th>
+                            <th>Ghi chú</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for schedule in doctor_schedules %}
+                            <tr>
+                                <td>{{ schedule.work_date|date:"d/m/Y" }}</td>
+                                <td>{{ schedule.shift.name }}<br><span class="help-text">{{ schedule.shift.start_time|time:"H:i" }} - {{ schedule.shift.end_time|time:"H:i" }}</span></td>
+                                <td>{{ schedule.get_status_display }}</td>
+                                <td>{{ schedule.note|default:"—" }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td class="empty-state" colspan="4">Chưa có lịch trực nào.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="panel panel-body" style="margin-top: 16px;">
+            <div class="toolbar">
+                <h2 style="font-size: 20px; margin: 0;">Lịch khám gần đây</h2>
+                {% if perms.clinic.add_appointment %}<a class="button secondary" href="{% url 'clinic:appointment-create' %}">Tạo lịch khám</a>{% endif %}
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mã lịch</th>
+                            <th>Ngày giờ</th>
+                            <th>Bệnh nhân</th>
+                            <th>Dịch vụ</th>
+                            <th>Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in appointments %}
+                            <tr>
+                                <td><a href="{% url 'clinic:appointment-detail' appointment.pk %}">{{ appointment.appointment_code }}</a></td>
+                                <td>{{ appointment.appointment_date|date:"d/m/Y" }}<br><span class="help-text">{{ appointment.start_time|time:"H:i" }} - {{ appointment.end_time|time:"H:i" }}</span></td>
+                                <td>{{ appointment.patient.full_name }}</td>
+                                <td>{{ appointment.service.name|default:"—" }}</td>
+                                <td>{{ appointment.get_status_display }}</td>
+                            </tr>
+                        {% empty %}
+                            <tr><td class="empty-state" colspan="5">Chưa có lịch khám nào.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    {% endif %}
+{% endblock %}

@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+
+{% block title %}Người dùng{% endblock %}
+{% block page_title %}Quản lý người dùng{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <form class="filter-form" method="get">
+            <input class="form-control" type="text" name="q" value="{{ keyword }}" placeholder="Tìm tên đăng nhập, họ tên, email">
+            <select name="type">
+                <option value="">Tất cả vai trò</option>
+                <option value="staff" {% if selected_type == "staff" %}selected{% endif %}>Nhân viên / Bác sĩ</option>
+                <option value="patient" {% if selected_type == "patient" %}selected{% endif %}>Bệnh nhân</option>
+                <option value="unlinked" {% if selected_type == "unlinked" %}selected{% endif %}>Chưa liên kết / Admin</option>
+            </select>
+            <button type="submit">Tìm kiếm</button>
+            {% if keyword or selected_type %}<a class="button secondary" href="{% url 'users:user-list' %}">Xóa lọc</a>{% endif %}
+        </form>
+        <a class="button" href="{% url 'users:user-create' %}">Thêm người dùng</a>
+    </div>
+
+    <div class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tên đăng nhập</th>
+                        <th>Hồ sơ liên kết</th>
+                        <th>Email</th>
+                        <th>Nhóm quyền</th>
+                        <th>Trạng thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user_item in users %}
+                        <tr>
+                            <td>
+                                <strong>{{ user_item.username }}</strong>
+                                {% if user_item.get_full_name %}
+                                    <br><span class="help-text">{{ user_item.get_full_name }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user_item.staff_profile %}
+                                    <strong>{{ user_item.staff_profile.full_name }}</strong>
+                                    <br><span class="help-text">{{ user_item.staff_profile.employee_code }} - {{ user_item.staff_profile.get_role_display }}</span>
+                                {% elif user_item.patient_profile %}
+                                    <strong>{{ user_item.patient_profile.full_name }}</strong>
+                                    <br><span class="help-text">{{ user_item.patient_profile.patient_code }} - Bệnh nhân</span>
+                                {% else %}
+                                    -
+                                {% endif %}
+                            </td>
+                            <td>{{ user_item.email|default:"-" }}</td>
+                            <td>
+                                {% for group in user_item.groups.all %}
+                                    {{ group.name }}{% if not forloop.last %}, {% endif %}
+                                {% empty %}
+                                    -
+                                {% endfor %}
+                            </td>
+                            <td>
+                                {% if user_item.is_active %}
+                                    <span class="badge active">Hoạt động</span>
+                                {% else %}
+                                    <span class="badge inactive">Tạm khóa</span>
+                                {% endif %}
+                                {% if user_item.is_staff %}<span class="badge active">Staff</span>{% endif %}
+                            </td>
+                            <td>
+                                <div class="actions">
+                                    <form class="inline-form" method="post" action="{% url 'users:user-reset-password' user_item.pk %}">
+                                        {% csrf_token %}
+                                        <button class="secondary" type="submit">Reset mật khẩu</button>
+                                    </form>
+                                    <a class="button secondary icon-button icon-edit" href="{% url 'users:user-update' user_item.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>
+                                    <a class="button secondary icon-button icon-delete" href="{% url 'users:user-delete' user_item.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="6">Chưa có người dùng phù hợp.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include "includes/pagination.html" %}
+{% endblock %}

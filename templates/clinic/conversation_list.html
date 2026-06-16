@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Tin nhắn hỗ trợ{% endblock %}
+{% block page_title %}Tin nhắn hỗ trợ{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Quản lý cuộc hội thoại hỗ trợ bệnh nhân</p>{% endblock %}
+
+{% block content %}
+<!-- Stats -->
+<div class="metric-grid" style="margin-bottom: 20px;">
+    <div class="metric">
+        <div class="metric-value" style="color: var(--primary);">{{ total_open }}</div>
+        <div class="metric-label">Đang mở</div>
+    </div>
+    <div class="metric">
+        <div class="metric-value" style="color: #d97706;">{{ total_unassigned }}</div>
+        <div class="metric-label">Chưa có người nhận</div>
+    </div>
+</div>
+
+<!-- Toolbar -->
+<div class="toolbar">
+    <form class="filter-form" method="get" action="">
+        <input type="text" name="q" value="{{ keyword }}" placeholder="Tìm theo tiêu đề, tên bệnh nhân..."
+               class="input" style="min-width: 260px;">
+        <select name="status" class="input" onchange="this.form.submit()">
+            <option value="">Tất cả trạng thái</option>
+            <option value="open" {% if selected_status == "open" %}selected{% endif %}>Đang mở</option>
+            <option value="unassigned" {% if selected_status == "unassigned" %}selected{% endif %}>Chưa có người nhận</option>
+            <option value="closed" {% if selected_status == "closed" %}selected{% endif %}>Đã đóng</option>
+        </select>
+        <button type="submit" class="button">Lọc</button>
+        {% if keyword or selected_status %}
+            <a href="{% url 'clinic:conversation-list' %}" class="button secondary">Xóa bộ lọc</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Table -->
+<div class="panel">
+    {% if conversations %}
+    <table class="table" style="width: 100%; border-collapse: collapse;">
+        <thead>
+            <tr>
+                <th style="padding: 12px 16px; text-align: left; color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid var(--line);">#</th>
+                <th style="padding: 12px 16px; text-align: left; color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid var(--line);">Bệnh nhân</th>
+                <th style="padding: 12px 16px; text-align: left; color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid var(--line);">Tiêu đề</th>
+                <th style="padding: 12px 16px; text-align: left; color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid var(--line);">Người hỗ trợ</th>
+                <th style="padding: 12px 16px; text-align: left; color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid var(--line);">Trạng thái</th>
+                <th style="padding: 12px 16px; text-align: left; color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid var(--line);">Tin chưa đọc</th>
+                <th style="padding: 12px 16px; text-align: left; color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; border-bottom: 2px solid var(--line);">Cập nhật</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for conv in conversations %}
+            <tr style="cursor: pointer; transition: background 0.15s;" onclick="window.location='{% url 'clinic:conversation-detail' pk=conv.pk %}'"
+                onmouseover="this.style.background='#f8f7ff'" onmouseout="this.style.background='transparent'">
+                <td style="padding: 14px 16px; border-bottom: 1px solid var(--line); font-weight: 600; color: var(--primary);">{{ conv.pk }}</td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid var(--line);">
+                    <div style="font-weight: 600;">{{ conv.patient.full_name }}</div>
+                    <div style="font-size: 12px; color: var(--muted);">{{ conv.patient.patient_code }}</div>
+                </td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid var(--line);">
+                    <div style="font-weight: 500; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ conv.subject }}</div>
+                    {% with last=conv.last_message %}
+                    {% if last %}
+                    <div style="font-size: 12px; color: var(--muted); margin-top: 2px; max-width: 280px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                        {{ last.content|truncatechars:50 }}
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                </td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid var(--line);">
+                    {% if conv.assigned_staff %}
+                        {{ conv.assigned_staff.full_name }}
+                    {% else %}
+                        <span style="color: var(--muted); font-style: italic;">Chưa có</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid var(--line);">
+                    {% if conv.is_closed %}
+                        <span style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; background: var(--line); color: var(--muted);">Đã đóng</span>
+                    {% elif conv.assigned_staff %}
+                        <span style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; background: var(--success-bg); color: #10b981;">Đang hỗ trợ</span>
+                    {% else %}
+                        <span style="display: inline-block; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; background: var(--warning-bg); color: #d97706;">Chờ nhận</span>
+                    {% endif %}
+                </td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid var(--line);">
+                    {% with unread=conv.unread_count_for_staff %}
+                    {% if unread > 0 %}
+                    <span style="
+                        display: inline-flex;
+                        align-items: center;
+                        justify-content: center;
+                        min-width: 24px;
+                        height: 24px;
+                        border-radius: 12px;
+                        background: #ef4444;
+                        color: #fff;
+                        font-size: 12px;
+                        font-weight: 700;
+                        padding: 0 6px;
+                    ">{{ unread }}</span>
+                    {% else %}
+                    <span style="color: var(--muted);">0</span>
+                    {% endif %}
+                    {% endwith %}
+                </td>
+                <td style="padding: 14px 16px; border-bottom: 1px solid var(--line); font-size: 13px; color: var(--muted); white-space: nowrap;">
+                    {{ conv.updated_at|date:"H:i d/m/Y" }}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div style="text-align: center; padding: 48px 24px; color: var(--muted);">
+        <p>Không có cuộc hội thoại nào{% if keyword or selected_status %} phù hợp với bộ lọc{% endif %}.</p>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Pagination -->
+{% if is_paginated %}
+<div style="display: flex; gap: 6px; justify-content: center; margin-top: 20px;">
+    {% if page_obj.has_previous %}
+        <a href="?page={{ page_obj.previous_page_number }}&{{ pagination_query }}" class="button secondary" style="font-size: 13px;">&laquo; Trước</a>
+    {% endif %}
+    {% for num in paginator.page_range %}
+        {% if num == page_obj.number %}
+            <span class="button" style="font-size: 13px;">{{ num }}</span>
+        {% else %}
+            <a href="?page={{ num }}&{{ pagination_query }}" class="button secondary" style="font-size: 13px;">{{ num }}</a>
+        {% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}&{{ pagination_query }}" class="button secondary" style="font-size: 13px;">Sau &raquo;</a>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

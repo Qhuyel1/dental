@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Cập nhật thuốc{% else %}Thêm thuốc{% endif %}{% endblock %}
+{% block page_title %}{% if object %}Cập nhật thuốc{% else %}Thêm thuốc{% endif %}{% endblock %}
+
+{% block content %}
+    <form class="panel" method="post">
+        {% csrf_token %}
+        <div class="panel-body">
+            <div class="form-grid">
+                {% include "includes/form_fields.html" %}
+            </div>
+            <div class="actions" style="margin-top: 22px;">
+                <button type="submit">Lưu</button>
+                {% if object %}
+                    <a class="button secondary" href="{% url 'clinic:medicine-detail' object.pk %}">Hủy</a>
+                {% else %}
+                    <a class="button secondary" href="{% url 'clinic:medicine-list' %}">Hủy</a>
+                {% endif %}
+            </div>
+        </div>
+    </form>
+{% endblock %}

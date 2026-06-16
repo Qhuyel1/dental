@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Thuốc{% endblock %}
+{% block page_title %}Quản lý thuốc{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Danh sách thuốc dùng khi kê đơn sau khám</p>{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <form class="filter-form" method="get">
+            <input class="form-control" type="text" name="q" value="{{ keyword }}" placeholder="Tìm mã thuốc, tên thuốc, hoạt chất">
+            <select name="status">
+                <option value="">Tất cả trạng thái</option>
+                <option value="active" {% if selected_status == "active" %}selected{% endif %}>Đang dùng</option>
+                <option value="inactive" {% if selected_status == "inactive" %}selected{% endif %}>Ngưng</option>
+            </select>
+            <button type="submit">Tìm kiếm</button>
+            {% if keyword or selected_status %}<a class="button secondary" href="{% url 'clinic:medicine-list' %}">Xóa lọc</a>{% endif %}
+        </form>
+        {% if perms.clinic.add_medicine %}<a class="button" href="{% url 'clinic:medicine-create' %}">Thêm thuốc</a>{% endif %}
+    </div>
+
+    <div class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Thuốc</th>
+                        <th>Hoạt chất</th>
+                        <th>Đơn vị</th>
+                        <th>Trạng thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for medicine in medicines %}
+                        <tr>
+                            <td><a href="{% url 'clinic:medicine-detail' medicine.pk %}">{{ medicine.medicine_code }}</a></td>
+                            <td>
+                                <strong>{{ medicine.name }}</strong>
+                                {% if medicine.strength %}<br><span class="help-text">{{ medicine.strength }}</span>{% endif %}
+                            </td>
+                            <td>{{ medicine.active_ingredient|default:"—" }}</td>
+                            <td>{{ medicine.unit|default:"—" }}</td>
+                            <td>
+                                {% if medicine.is_active %}
+                                    <span class="badge active">Đang dùng</span>
+                                {% else %}
+                                    <span class="badge inactive">Ngưng</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary icon-button icon-view" href="{% url 'clinic:medicine-detail' medicine.pk %}" title="Xem" aria-label="Xem"><span class="sr-only">Xem</span></a>
+                                    {% if perms.clinic.change_medicine %}<a class="button secondary icon-button icon-edit" href="{% url 'clinic:medicine-update' medicine.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>{% endif %}
+                                    {% if perms.clinic.delete_medicine %}<a class="button secondary icon-button icon-delete" href="{% url 'clinic:medicine-delete' medicine.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>{% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="6">Chưa có thuốc phù hợp.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include "includes/pagination.html" %}
+{% endblock %}

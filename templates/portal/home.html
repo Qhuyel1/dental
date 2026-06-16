@@ -1,0 +1,95 @@
+{% extends "portal/base.html" %}
+
+{% block title %}Tổng quan — Hồ sơ bệnh nhân{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Xin chào, {{ patient.full_name }}</h1>
+    <p>Đây là tóm tắt thông tin hồ sơ của bạn tại phòng khám.</p>
+</div>
+
+<div class="stats-grid">
+    <div class="stat-card">
+        <div class="stat-label">Lịch khám sắp tới</div>
+        <div class="stat-value">{{ upcoming_appointments|length }}</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Hóa đơn chưa thanh toán</div>
+        <div class="stat-value" style="color: {% if unpaid_invoices %}var(--warning){% else %}var(--success){% endif %}">
+            {{ unpaid_invoices|length }}
+        </div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Mã bệnh nhân</div>
+        <div class="stat-value" style="font-size: 18px;">{{ patient.patient_code }}</div>
+    </div>
+</div>
+
+{% if upcoming_appointments %}
+<div class="card">
+    <div class="card-title">Lịch khám sắp tới</div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Ngày khám</th>
+                <th>Bác sĩ</th>
+                <th>Ca làm việc</th>
+                <th>Trạng thái</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appt in upcoming_appointments %}
+            <tr>
+                <td><strong>{{ appt.doctor_schedule.work_date|date:"d/m/Y" }}</strong></td>
+                <td>{{ appt.doctor_schedule.doctor.full_name }}</td>
+                <td>{{ appt.doctor_schedule.shift.name }}</td>
+                <td>
+                    <span class="badge badge-info">{{ appt.get_status_display }}</span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div style="margin-top: 12px; text-align: right;">
+        <a href="{% url 'portal:appointments' %}" style="font-size: 13px; color: var(--primary);">Xem tất cả →</a>
+    </div>
+</div>
+{% endif %}
+
+{% if unpaid_invoices %}
+<div class="card">
+    <div class="card-title">Hóa đơn chưa thanh toán</div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Mã hóa đơn</th>
+                <th>Ngày tạo</th>
+                <th>Tổng tiền</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for inv in unpaid_invoices %}
+            <tr>
+                <td><strong>{{ inv.invoice_code|default:inv.pk }}</strong></td>
+                <td>{{ inv.created_at|date:"d/m/Y" }}</td>
+                <td style="color: var(--warning); font-weight: 600;">
+                    {{ inv.total_amount|floatformat:0 }} ₫
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <div style="margin-top: 12px; text-align: right;">
+        <a href="{% url 'portal:invoices' %}" style="font-size: 13px; color: var(--primary);">Xem tất cả →</a>
+    </div>
+</div>
+{% endif %}
+
+{% if not upcoming_appointments and not unpaid_invoices %}
+<div class="card">
+    <div class="empty-state">
+        <p>Không có lịch hẹn sắp tới hoặc hóa đơn chưa thanh toán.<br>Hồ sơ của bạn đang ở trạng thái hoạt động tốt.</p>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

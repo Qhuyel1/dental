@@ -1,0 +1,501 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+{% block page_subtitle %}{% endblock %}
+
+{% block content %}
+    <div class="dashboard-page">
+        <div class="dashboard-toolbar">
+            <div class="dashboard-greeting">
+                <h2>Xin chào, {{ request.user.username }}</h2>
+                <p>Dashboard được cập nhật theo dữ liệu mới nhất của phòng khám</p>
+            </div>
+            <div class="dashboard-controls">
+                <span class="dashboard-chip">Tự động cập nhật</span>
+                <a class="dashboard-chip" href="{% url 'clinic:appointment-calendar' %}">Lịch tuần</a>
+                {% if perms.clinic.view_invoice %}<a class="dashboard-chip" href="{% url 'clinic:invoice-list' %}">Hóa đơn</a>{% endif %}
+                {% if perms.clinic.view_supply %}<a class="dashboard-chip" href="{% url 'clinic:supply-list' %}">Kho</a>{% endif %}
+                {% if perms.clinic.add_appointment %}<a class="dashboard-chip primary" href="{% url 'clinic:appointment-create' %}">Tạo lịch khám</a>{% endif %}
+            </div>
+        </div>
+
+        <div class="metric-grid">
+            {% if perms.clinic.view_invoice %}
+            <div class="metric">
+                <div class="metric-top">
+                    <span class="metric-icon">DT</span>
+                    <span class="metric-change">Tháng này</span>
+                </div>
+                <div class="metric-value">{{ revenue_month|floatformat:0 }}</div>
+                <div class="metric-label">Doanh thu (VND)</div>
+                <div class="metric-sparkline purple" aria-hidden="true">
+                    <span style="height: 42%;"></span>
+                    <span style="height: 58%;"></span>
+                    <span style="height: 36%;"></span>
+                    <span style="height: 70%;"></span>
+                    <span style="height: 54%;"></span>
+                    <span style="height: 82%;"></span>
+                    <span style="height: 68%;"></span>
+                </div>
+            </div>
+            {% endif %}
+            <div class="metric">
+                <div class="metric-top">
+                    <span class="metric-icon">BN</span>
+                    <span class="metric-change">+{{ new_patient_today_count }}</span>
+                </div>
+                <div class="metric-value">{{ new_patient_month_count }}</div>
+                <div class="metric-label">Bệnh nhân mới</div>
+                <div class="metric-sparkline" aria-hidden="true">
+                    <span style="height: 34%;"></span>
+                    <span style="height: 42%;"></span>
+                    <span style="height: 72%;"></span>
+                    <span style="height: 48%;"></span>
+                    <span style="height: 64%;"></span>
+                    <span style="height: 88%;"></span>
+                    <span style="height: 58%;"></span>
+                </div>
+            </div>
+            {% if perms.clinic.view_invoice %}
+            <div class="metric">
+                <div class="metric-top">
+                    <span class="metric-icon">LH</span>
+                    <span class="metric-change">{{ completed_appointment_month_count }} xong</span>
+                </div>
+                <div class="metric-value">{{ upcoming_appointment_count }}</div>
+                <div class="metric-label">Lịch khám sắp tới</div>
+                <div class="metric-sparkline" aria-hidden="true">
+                    <span style="height: 50%;"></span>
+                    <span style="height: 44%;"></span>
+                    <span style="height: 66%;"></span>
+                    <span style="height: 54%;"></span>
+                    <span style="height: 78%;"></span>
+                    <span style="height: 62%;"></span>
+                    <span style="height: 72%;"></span>
+                </div>
+            </div>
+            <div class="metric">
+                <div class="metric-top">
+                    <span class="metric-icon">HD</span>
+                    <span class="metric-change warning">{{ outstanding_invoice_count }} còn nợ</span>
+                </div>
+                <div class="metric-value">{{ invoice_count }}</div>
+                <div class="metric-label">Hóa đơn</div>
+                <div class="metric-sparkline red" aria-hidden="true">
+                    <span style="height: 70%;"></span>
+                    <span style="height: 58%;"></span>
+                    <span style="height: 66%;"></span>
+                    <span style="height: 38%;"></span>
+                    <span style="height: 52%;"></span>
+                    <span style="height: 44%;"></span>
+                    <span style="height: 36%;"></span>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="dashboard-stats-strip">
+            <div class="stat-tile">
+                <strong>{{ patient_count }}</strong>
+                <span>Bệnh nhân</span>
+            </div>
+            <div class="stat-tile">
+                <strong>{{ doctor_count }}</strong>
+                <span>Bác sĩ</span>
+            </div>
+            <div class="stat-tile">
+                <strong>{{ service_count }}</strong>
+                <span>Dịch vụ</span>
+            </div>
+            <div class="stat-tile">
+                <strong>{{ active_price_list_count }}</strong>
+                <span>Bảng giá</span>
+            </div>
+            <div class="stat-tile">
+                <strong>{{ medicine_count }}</strong>
+                <span>Thuốc</span>
+            </div>
+            <div class="stat-tile">
+                <strong>{{ prescription_count }}</strong>
+                <span>Đơn thuốc</span>
+            </div>
+            {% if perms.clinic.view_supply %}
+            <div class="stat-tile">
+                <strong>{{ supply_count }}</strong>
+                <span>Vật tư</span>
+            </div>
+            <div class="stat-tile">
+                <strong>{{ low_stock_supply_count }}</strong>
+                <span>Sắp hết hàng</span>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if perms.clinic.view_invoice %}
+        <div class="dashboard-insight-grid">
+            <div class="dashboard-card soft-chart-card">
+                <div class="soft-chart-header">
+                    <div>
+                        <div class="soft-chart-title">Doanh thu</div>
+                        <div class="soft-chart-total">
+                            {{ revenue_month|floatformat:0 }} VND
+                            <span class="{% if revenue_month_change_percent < 0 %}down{% else %}up{% endif %}">
+                                {% if revenue_month_change_percent > 0 %}+{% endif %}{{ revenue_month_change_percent }}% so với tháng trước
+                            </span>
+                        </div>
+                    </div>
+                    <div class="range-tabs" aria-label="Khoảng thời gian hiển thị">
+                        <span>1D</span>
+                        <span>1W</span>
+                        <span>1M</span>
+                        <span>6M</span>
+                        <span class="active">1Y</span>
+                        <span>ALL</span>
+                    </div>
+                </div>
+
+                <div class="soft-chart-body">
+                    <div class="soft-y-axis">
+                        <span>40tr</span>
+                        <span>30tr</span>
+                        <span>20tr</span>
+                        <span>10tr</span>
+                        <span>0</span>
+                    </div>
+                    <div class="soft-column-area">
+                        <svg class="soft-trend-svg" viewBox="0 0 {{ monthly_revenue_trend_chart.width }} {{ monthly_revenue_trend_chart.height }}" preserveAspectRatio="none" aria-hidden="true">
+                            <polyline class="soft-trend-line" points="{{ monthly_revenue_trend_chart.points_attr }}"></polyline>
+                        </svg>
+                        <div class="soft-columns" style="--bar-count: 12;">
+                            {% for item in monthly_revenue_chart %}
+                                <div class="soft-column">
+                                    <div class="soft-bar-shell">
+                                        <div class="soft-bar-fill" style="height: {{ item.height }}%;">
+                                            <span></span>
+                                        </div>
+                                    </div>
+                                    <div class="soft-month-label">{{ item.label }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-side">
+                <div class="dashboard-card soft-mini-card">
+                    <div class="soft-mini-head">
+                        <span>Doanh thu 14 ngày</span>
+                        <strong>{{ revenue_line_chart.total_label }} VND</strong>
+                    </div>
+                    <div class="line-chart">
+                        <svg viewBox="0 0 {{ revenue_line_chart.width }} {{ revenue_line_chart.height }}" role="img" aria-label="Xu hướng doanh thu 14 ngày">
+                            {% for y in revenue_line_chart.grid_lines %}
+                                <line class="line-grid-line" x1="{{ revenue_line_chart.left }}" y1="{{ y }}" x2="{{ revenue_line_chart.right_edge }}" y2="{{ y }}"></line>
+                            {% endfor %}
+                            <polygon class="line-area" points="{{ revenue_line_chart.area_points }}"></polygon>
+                            <polyline class="line-stroke" points="{{ revenue_line_chart.points_attr }}"></polyline>
+                            {% for point in revenue_line_chart.points %}
+                                <circle class="line-point" cx="{{ point.x }}" cy="{{ point.y }}" r="4">
+                                    <title>{{ point.label }}: {{ point.display_value }} VND</title>
+                                </circle>
+                            {% endfor %}
+                        </svg>
+                        <div class="line-axis-labels">
+                            {% for point in revenue_line_chart.points %}
+                                {% if point.show_label %}<span>{{ point.label }}</span>{% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-card line-card accent-teal">
+                    <div class="chart-title">
+                        <h2>Xu hướng lịch khám</h2>
+                        <span>{{ appointment_line_chart.total_label }} lịch</span>
+                    </div>
+                    <div class="line-chart">
+                        <svg viewBox="0 0 {{ appointment_line_chart.width }} {{ appointment_line_chart.height }}" role="img" aria-label="Xu hướng lịch khám 14 ngày">
+                            {% for y in appointment_line_chart.grid_lines %}
+                                <line class="line-grid-line" x1="{{ appointment_line_chart.left }}" y1="{{ y }}" x2="{{ appointment_line_chart.right_edge }}" y2="{{ y }}"></line>
+                            {% endfor %}
+                            <polygon class="line-area" points="{{ appointment_line_chart.area_points }}"></polygon>
+                            <polyline class="line-stroke" points="{{ appointment_line_chart.points_attr }}"></polyline>
+                            {% for point in appointment_line_chart.points %}
+                                <circle class="line-point" cx="{{ point.x }}" cy="{{ point.y }}" r="4">
+                                    <title>{{ point.label }}: {{ point.display_value }} lịch</title>
+                                </circle>
+                            {% endfor %}
+                        </svg>
+                        <div class="line-axis-labels">
+                            {% for point in appointment_line_chart.points %}
+                                {% if point.show_label %}<span>{{ point.label }}</span>{% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="dashboard-insight-grid compact">
+            <div class="dashboard-card line-card accent-teal">
+                <div class="chart-title">
+                    <h2>Xu hướng lịch khám</h2>
+                    <span>{{ appointment_line_chart.total_label }} lịch</span>
+                </div>
+                <div class="line-chart">
+                    <svg viewBox="0 0 {{ appointment_line_chart.width }} {{ appointment_line_chart.height }}" role="img" aria-label="Xu hướng lịch khám 14 ngày">
+                        {% for y in appointment_line_chart.grid_lines %}
+                            <line class="line-grid-line" x1="{{ appointment_line_chart.left }}" y1="{{ y }}" x2="{{ appointment_line_chart.right_edge }}" y2="{{ y }}"></line>
+                        {% endfor %}
+                        <polygon class="line-area" points="{{ appointment_line_chart.area_points }}"></polygon>
+                        <polyline class="line-stroke" points="{{ appointment_line_chart.points_attr }}"></polyline>
+                        {% for point in appointment_line_chart.points %}
+                            <circle class="line-point" cx="{{ point.x }}" cy="{{ point.y }}" r="4">
+                                <title>{{ point.label }}: {{ point.display_value }} lịch</title>
+                            </circle>
+                        {% endfor %}
+                    </svg>
+                    <div class="line-axis-labels">
+                        {% for point in appointment_line_chart.points %}
+                            {% if point.show_label %}<span>{{ point.label }}</span>{% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <h2 class="section-title">Báo cáo thống kê</h2>
+
+        <div class="dashboard-insight-grid compact">
+            {% if perms.clinic.view_invoice %}
+            <div class="dashboard-card soft-chart-card slim">
+                <div class="soft-chart-header">
+                    <div>
+                        <div class="soft-chart-title">Bệnh nhân mới</div>
+                        <div class="soft-chart-total">{{ new_patient_month_count }} <span class="up">+{{ new_patient_today_count }} hôm nay</span></div>
+                    </div>
+                    <div class="range-tabs">
+                        <span>1D</span>
+                        <span class="active">1W</span>
+                        <span>1M</span>
+                    </div>
+                </div>
+                <div class="soft-chart-body">
+                    <div class="soft-y-axis compact">
+                        <span>Max</span>
+                        <span>Mid</span>
+                        <span>0</span>
+                    </div>
+                    <div class="soft-column-area">
+                        <div class="soft-columns" style="--bar-count: 7;">
+                            {% for item in new_patient_chart %}
+                                <div class="soft-column">
+                                    <div class="soft-bar-shell">
+                                        <div class="soft-bar-fill teal" style="height: {{ item.height }}%;">
+                                            <span></span>
+                                        </div>
+                                    </div>
+                                    <div class="soft-month-label">{{ item.label }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-card soft-chart-card slim">
+                <div class="soft-chart-header">
+                    <div>
+                        <div class="soft-chart-title">Doanh thu 7 ngày</div>
+                        <div class="soft-chart-total">{{ revenue_today|floatformat:0 }} VND <span class="up">hôm nay</span></div>
+                    </div>
+                    <div class="range-tabs">
+                        <span>1D</span>
+                        <span class="active">1W</span>
+                        <span>1M</span>
+                    </div>
+                </div>
+                <div class="soft-chart-body">
+                    <div class="soft-y-axis compact">
+                        <span>Max</span>
+                        <span>Mid</span>
+                        <span>0</span>
+                    </div>
+                    <div class="soft-column-area">
+                        <div class="soft-columns" style="--bar-count: 7;">
+                            {% for item in daily_revenue_chart %}
+                                <div class="soft-column">
+                                    <div class="soft-bar-shell">
+                                        <div class="soft-bar-fill" style="height: {{ item.height }}%;">
+                                            <span></span>
+                                        </div>
+                                    </div>
+                                    <div class="soft-month-label">{{ item.label }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="dashboard-insight-grid compact">
+            {% if perms.clinic.view_invoice %}
+            <div class="dashboard-card soft-chart-card slim">
+                <div class="soft-chart-header">
+                    <div>
+                        <div class="soft-chart-title">Doanh thu theo năm</div>
+                        <div class="soft-chart-total">{{ revenue_year|floatformat:0 }} VND <span class="up">5 năm gần nhất</span></div>
+                    </div>
+                </div>
+                <div class="soft-chart-body">
+                    <div class="soft-y-axis compact">
+                        <span>Max</span>
+                        <span>Mid</span>
+                        <span>0</span>
+                    </div>
+                    <div class="soft-column-area">
+                        <div class="soft-columns" style="--bar-count: 5;">
+                            {% for item in yearly_revenue_chart %}
+                                <div class="soft-column">
+                                    <div class="soft-bar-shell">
+                                        <div class="soft-bar-fill" style="height: {{ item.height }}%;">
+                                            <span></span>
+                                        </div>
+                                    </div>
+                                    <div class="soft-month-label">{{ item.label }}</div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="dashboard-card">
+                <div class="chart-title">
+                    <h2>Trạng thái lịch hẹn</h2>
+                    <span>{{ report_month_label }}</span>
+                </div>
+                <div class="status-stack" aria-label="Trạng thái lịch hẹn trong tháng">
+                    <div class="status-segment completed" style="width: {{ appointment_status_report.completed_percent }}%;"></div>
+                    <div class="status-segment active" style="width: {{ appointment_status_report.active_percent }}%;"></div>
+                    <div class="status-segment cancelled" style="width: {{ appointment_status_report.cancelled_percent }}%;"></div>
+                    <div class="status-segment no-show" style="width: {{ appointment_status_report.no_show_percent }}%;"></div>
+                </div>
+                <div class="status-legend">
+                    <div class="legend-item"><strong>{{ appointment_status_report.completed }}</strong>Hoàn thành</div>
+                    <div class="legend-item"><strong>{{ appointment_status_report.active }}</strong>Đang xử lý</div>
+                    <div class="legend-item"><strong>{{ appointment_status_report.cancelled }}</strong>Đã hủy</div>
+                    <div class="legend-item"><strong>{{ appointment_status_report.no_show }}</strong>Không đến</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dashboard-bottom">
+            {% if perms.clinic.view_invoice %}
+            <div class="dashboard-card">
+                <div class="chart-title">
+                    <h2>Dịch vụ được dùng nhiều nhất</h2>
+                    <span>{{ report_month_label }}</span>
+                </div>
+                <div class="horizontal-list">
+                    {% for service in top_services %}
+                        <div class="horizontal-row">
+                            <div class="horizontal-meta">
+                                <strong>{{ service.name }}</strong>
+                                <span>{{ service.usage_count }} lượt · {{ service.revenue|floatformat:0 }} VND</span>
+                            </div>
+                            <div class="horizontal-track">
+                                <div class="horizontal-fill" style="width: {{ service.bar_width }}%;"></div>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="empty-state">Chưa có dữ liệu dịch vụ trong tháng này.</div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if perms.clinic.view_supply or perms.clinic.view_invoice %}
+            <div class="dashboard-card">
+                <div class="chart-title">
+                    <h2>Tín hiệu vận hành</h2>
+                    <span>Cần theo dõi</span>
+                </div>
+                <div class="signal-list">
+                    {% if perms.clinic.view_supply %}
+                    <div class="signal-row">
+                        <span class="signal-icon">KH</span>
+                        <div class="signal-copy">
+                            <strong>Kho sắp hết</strong>
+                            <span>Vật tư thấp hơn ngưỡng</span>
+                        </div>
+                        <span class="signal-value">{{ low_stock_supply_count }}</span>
+                    </div>
+                    <div class="signal-row">
+                        <span class="signal-icon">HD</span>
+                        <div class="signal-copy">
+                            <strong>Lô sắp hết hạn</strong>
+                            <span>Còn tồn và hết hạn trong 30 ngày</span>
+                        </div>
+                        <span class="signal-value">{{ expiring_supply_lot_count }}</span>
+                    </div>
+                    {% endif %}
+                    {% if perms.clinic.view_invoice %}
+                    <div class="signal-row">
+                        <span class="signal-icon">CN</span>
+                        <div class="signal-copy">
+                            <strong>Công nợ</strong>
+                            <span>Hóa đơn còn nợ</span>
+                        </div>
+                        <span class="signal-value">{{ outstanding_invoice_count }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if perms.clinic.view_invoice %}
+        <div class="dashboard-bottom single">
+            <div class="dashboard-card">
+                <div class="chart-title">
+                    <h2>Hiệu suất bác sĩ</h2>
+                    <span>{{ report_month_label }}</span>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Bác sĩ</th>
+                                <th>Tổng lịch</th>
+                                <th>Hoàn thành</th>
+                                <th>Tỷ lệ</th>
+                                <th>Doanh thu</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for item in doctor_performance %}
+                                <tr>
+                                    <td><a href="{% url 'clinic:staff-detail' item.doctor.pk %}">{{ item.doctor.full_name }}</a></td>
+                                    <td>{{ item.total }}</td>
+                                    <td>{{ item.completed }}</td>
+                                    <td>{{ item.completion_rate }}%</td>
+                                    <td>{{ item.revenue|floatformat:0 }} VND</td>
+                                </tr>
+                            {% empty %}
+                                <tr><td class="empty-state" colspan="5">Chưa có dữ liệu bác sĩ trong tháng này.</td></tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+{% endblock %}

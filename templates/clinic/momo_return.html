@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Kết quả thanh toán MoMo{% endblock %}
+{% block page_title %}Kết quả thanh toán MoMo{% endblock %}
+
+{% block content %}
+    <div class="panel panel-body auth-panel">
+        {% if payment_transaction %}
+            <h2 style="margin-top: 0;">{{ payment_transaction.invoice.invoice_code }}</h2>
+            <p>
+                {% if payment_transaction.status == "success" %}
+                    Hệ thống đã xác nhận thanh toán thành công.
+                {% elif payment_transaction.status == "failed" %}
+                    Giao dịch chưa thành công.
+                {% else %}
+                    Giao dịch đã quay về từ MoMo và đang chờ xác nhận server-to-server.
+                {% endif %}
+            </p>
+            <div class="form-row">
+                <label>Thông điệp từ MoMo</label>
+                <p>{{ message|default:payment_transaction.provider_message|default:"—" }}</p>
+            </div>
+            <div class="form-row">
+                <label>Trạng thái hiện tại</label>
+                <p>{{ payment_transaction.get_status_display }}</p>
+            </div>
+            <div class="help-text">
+                Nếu bạn vừa thanh toán xong nhưng trạng thái chưa đổi, hãy chờ vài giây để IPN của MoMo cập nhật về hệ thống phòng khám.
+            </div>
+        {% else %}
+            <p>Không tìm thấy giao dịch MoMo tương ứng.</p>
+        {% endif %}
+    </div>
+{% endblock %}

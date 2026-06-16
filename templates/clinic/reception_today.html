@@ -1,0 +1,376 @@
+{% extends "base.html" %}
+
+{% block title %}Tiếp đón hôm nay{% endblock %}
+{% block page_title %}Tiếp đón hôm nay{% endblock %}
+{% block page_subtitle %}
+    <p class="page-subtitle">{{ today|date:"d/m/Y" }} · Lễ tân theo dõi lịch hẹn, check-in và hàng chờ bác sĩ trong cùng một màn hình.</p>
+{% endblock %}
+
+{% block extra_styles %}
+    .reception-layout {
+        display: grid;
+        gap: 16px;
+        grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.9fr);
+    }
+
+    .reception-stack {
+        display: grid;
+        gap: 16px;
+    }
+
+    .queue-group + .queue-group {
+        border-top: 1px solid var(--line);
+        margin-top: 16px;
+        padding-top: 16px;
+    }
+
+    .queue-item {
+        align-items: flex-start;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        display: grid;
+        gap: 10px;
+        grid-template-columns: auto 1fr;
+        padding: 12px;
+    }
+
+    .queue-number {
+        align-items: center;
+        background: #eef3f8;
+        border-radius: 999px;
+        color: #111827;
+        display: inline-flex;
+        font-size: 14px;
+        font-weight: 700;
+        height: 36px;
+        justify-content: center;
+        min-width: 36px;
+        padding: 0 10px;
+    }
+
+    .alert-stack {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 6px;
+    }
+
+    .alert-chip {
+        background: #f8fafc;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        color: var(--muted);
+        display: inline-flex;
+        font-size: 12px;
+        font-weight: 700;
+        padding: 4px 9px;
+    }
+
+    .alert-chip.medical {
+        background: #fff7ed;
+        border-color: #fed7aa;
+        color: #9a3412;
+    }
+
+    .alert-chip.admin {
+        background: #eff6ff;
+        border-color: #bfdbfe;
+        color: #1d4ed8;
+    }
+
+    .badge.priority-normal {
+        background: #f3f4f6;
+        color: #4b5563;
+    }
+
+    .badge.priority-priority {
+        background: #fff7ed;
+        color: #c2410c;
+    }
+
+    .badge.priority-urgent {
+        background: #fef2f2;
+        color: #b91c1c;
+    }
+
+    .form-section-title {
+        font-size: 14px;
+        font-weight: 700;
+        margin: 0 0 8px;
+    }
+
+    .appointment-code-meta {
+        color: var(--muted);
+        font-size: 12px;
+        margin-top: 4px;
+    }
+
+    @media (max-width: 1100px) {
+        .reception-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+{% endblock %}
+
+{% block content %}
+    <div class="metric-grid" style="margin-bottom: 16px;">
+        <div class="metric">
+            <div class="metric-value">{{ total_today_count }}</div>
+            <div class="metric-label">Lịch hẹn hôm nay</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value">{{ scheduled_count }}</div>
+            <div class="metric-label">Chờ tiếp đón</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value">{{ waiting_count }}</div>
+            <div class="metric-label">Đang chờ bác sĩ</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value">{{ walk_in_count }}</div>
+            <div class="metric-label">Không hẹn trước</div>
+        </div>
+    </div>
+
+    <div class="toolbar">
+        <form class="filter-form" method="get">
+            <input class="form-control" type="text" name="q" value="{{ selected_keyword }}" placeholder="Tìm mã lịch, bệnh nhân, SĐT, lý do khám">
+            <select name="doctor">
+                <option value="">Tất cả bác sĩ</option>
+                {% for doctor in doctors %}
+                    <option value="{{ doctor.pk }}" {% if selected_doctor == doctor.pk|stringformat:"s" %}selected{% endif %}>{{ doctor.full_name }}</option>
+                {% endfor %}
+            </select>
+            <select name="shift">
+                <option value="">Tất cả ca</option>
+                {% for shift in shifts %}
+                    <option value="{{ shift.pk }}" {% if selected_shift == shift.pk|stringformat:"s" %}selected{% endif %}>{{ shift.name }} · {{ shift.start_time|time:"H:i" }} - {{ shift.end_time|time:"H:i" }}</option>
+                {% endfor %}
+            </select>
+            <select name="status">
+                <option value="">Tất cả trạng thái</option>
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="visit_type">
+                <option value="">Tất cả loại lượt khám</option>
+                {% for value, label in visit_type_choices %}
+                    <option value="{{ value }}" {% if selected_visit_type == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="priority_level">
+                <option value="">Tất cả mức ưu tiên</option>
+                {% for value, label in priority_level_choices %}
+                    <option value="{{ value }}" {% if selected_priority_level == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Lọc</button>
+            {% if selected_keyword or selected_doctor or selected_shift or selected_status or selected_visit_type or selected_priority_level %}
+                <a class="button secondary" href="{% url 'clinic:reception-today' %}">Xóa lọc</a>
+            {% endif %}
+        </form>
+        <div class="actions">
+            <a class="button secondary" href="{% url 'clinic:appointment-list' %}">Mở danh sách lịch khám</a>
+        </div>
+    </div>
+
+    <div class="reception-layout">
+        <div class="panel panel-body">
+            <div class="toolbar">
+                <h2 style="font-size: 20px; margin: 0;">Lịch hẹn và check-in trong ngày</h2>
+                <span class="help-text">{{ appointments|length }} kết quả</span>
+            </div>
+            <div class="table-wrap">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Giờ</th>
+                            <th>Bệnh nhân</th>
+                            <th>Bác sĩ / ca</th>
+                            <th>Lý do khám</th>
+                            <th>Trạng thái</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for appointment in appointments %}
+                            <tr>
+                                <td>
+                                    <strong>{{ appointment.start_time|time:"H:i" }}</strong>
+                                    <div class="help-text">{{ appointment.end_time|time:"H:i" }}</div>
+                                </td>
+                                <td>
+                                    <strong><a href="{% url 'clinic:appointment-detail' appointment.pk %}">{{ appointment.patient.full_name }}</a></strong>
+                                    <div class="appointment-code-meta">
+                                        {{ appointment.patient.patient_code }}
+                                        {% if appointment.patient.phone %} · {{ appointment.patient.phone }}{% endif %}
+                                        {% if appointment.arrival_type == "walk_in" %} · Walk-in{% endif %}
+                                    </div>
+                                    {% if appointment.medical_alerts or appointment.admin_alerts %}
+                                        <div class="alert-stack">
+                                            {% for alert in appointment.medical_alerts %}
+                                                <span class="alert-chip medical">{{ alert }}</span>
+                                            {% endfor %}
+                                            {% for alert in appointment.admin_alerts %}
+                                                <span class="alert-chip admin">{{ alert }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {{ appointment.doctor_schedule.doctor.full_name }}<br>
+                                    <span class="help-text">{{ appointment.doctor_schedule.shift.name }} · {{ appointment.doctor_schedule.shift.start_time|time:"H:i" }} - {{ appointment.doctor_schedule.shift.end_time|time:"H:i" }}</span>
+                                </td>
+                                <td>
+                                    {{ appointment.chief_complaint|default:"-" }}
+                                    {% if appointment.service %}
+                                        <div class="help-text">{{ appointment.service.name }}</div>
+                                    {% endif %}
+                                    <div class="help-text">{{ appointment.get_visit_type_display }}</div>
+                                </td>
+                                <td>
+                                    <span class="badge priority-{{ appointment.priority_level }}">{{ appointment.get_priority_level_display }}</span><br>
+                                    {% if appointment.status == "checked_in" %}
+                                        <span class="badge warning">{{ appointment.get_status_display }}</span>
+                                        {% if appointment.queue_number %}<div class="help-text">STT {{ appointment.queue_number }}</div>{% endif %}
+                                    {% elif appointment.status == "scheduled" or appointment.status == "confirmed" %}
+                                        <span class="badge active">{{ appointment.get_status_display }}</span>
+                                    {% else %}
+                                        <span class="badge inactive">{{ appointment.get_status_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="actions">
+                                        {% if appointment.can_check_in %}
+                                            <form class="inline-form" method="post" action="{% url 'clinic:appointment-check-in' appointment.pk %}">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                                <button type="submit">Tiếp đón</button>
+                                            </form>
+                                        {% endif %}
+                                        <a class="button secondary" href="{% url 'clinic:appointment-ticket' appointment.pk %}" target="_blank" rel="noopener">In phiếu</a>
+                                        <a class="button secondary" href="{% url 'clinic:appointment-detail' appointment.pk %}">Xem</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr><td class="empty-state" colspan="6">Không có lịch hẹn phù hợp trong ngày hôm nay.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="reception-stack">
+            <div class="panel panel-body">
+                <div class="toolbar">
+                    <h2 style="font-size: 20px; margin: 0;">Tiếp nhận không hẹn trước</h2>
+                    <span class="help-text">Tạo nhanh lượt khám và đưa vào hàng chờ bác sĩ.</span>
+                </div>
+                <form method="post" action="{% url 'clinic:reception-walk-in-create' %}">
+                    {% csrf_token %}
+                    <div class="form-row">
+                        <label for="{{ walk_in_form.patient.id_for_label }}">{{ walk_in_form.patient.label }}</label>
+                        {{ walk_in_form.patient }}
+                        {% if walk_in_form.patient.help_text %}<div class="help-text">{{ walk_in_form.patient.help_text }}</div>{% endif %}
+                    </div>
+                    <p class="form-section-title">Nếu là bệnh nhân mới</p>
+                    <div class="form-row">
+                        <label for="{{ walk_in_form.new_full_name.id_for_label }}">{{ walk_in_form.new_full_name.label }}</label>
+                        {{ walk_in_form.new_full_name }}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ walk_in_form.new_phone.id_for_label }}">{{ walk_in_form.new_phone.label }}</label>
+                        {{ walk_in_form.new_phone }}
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-row">
+                            <label for="{{ walk_in_form.new_gender.id_for_label }}">{{ walk_in_form.new_gender.label }}</label>
+                            {{ walk_in_form.new_gender }}
+                        </div>
+                        <div class="form-row">
+                            <label for="{{ walk_in_form.new_date_of_birth.id_for_label }}">{{ walk_in_form.new_date_of_birth.label }}</label>
+                            {{ walk_in_form.new_date_of_birth }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ walk_in_form.doctor_schedule.id_for_label }}">{{ walk_in_form.doctor_schedule.label }}</label>
+                        {{ walk_in_form.doctor_schedule }}
+                        {% if walk_in_form.doctor_schedule.help_text %}<div class="help-text">{{ walk_in_form.doctor_schedule.help_text }}</div>{% endif %}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ walk_in_form.service.id_for_label }}">{{ walk_in_form.service.label }}</label>
+                        {{ walk_in_form.service }}
+                    </div>
+                    <div class="form-grid">
+                        <div class="form-row">
+                            <label for="{{ walk_in_form.visit_type.id_for_label }}">{{ walk_in_form.visit_type.label }}</label>
+                            {{ walk_in_form.visit_type }}
+                        </div>
+                        <div class="form-row">
+                            <label for="{{ walk_in_form.priority_level.id_for_label }}">{{ walk_in_form.priority_level.label }}</label>
+                            {{ walk_in_form.priority_level }}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ walk_in_form.chief_complaint.id_for_label }}">{{ walk_in_form.chief_complaint.label }}</label>
+                        {{ walk_in_form.chief_complaint }}
+                    </div>
+                    <div class="form-row">
+                        <label for="{{ walk_in_form.note.id_for_label }}">{{ walk_in_form.note.label }}</label>
+                        {{ walk_in_form.note }}
+                    </div>
+                    <button type="submit">Thêm vào hàng chờ</button>
+                </form>
+            </div>
+
+            <div class="panel panel-body">
+                <div class="toolbar">
+                    <h2 style="font-size: 20px; margin: 0;">Hàng chờ bác sĩ</h2>
+                    <span class="help-text">{{ waiting_count }} bệnh nhân đã check-in</span>
+                </div>
+                {% for group in waiting_groups %}
+                    <div class="queue-group">
+                        <div class="toolbar" style="margin-bottom: 12px;">
+                            <strong>{{ group.doctor.full_name }}</strong>
+                            <span class="help-text">{{ group.appointments|length }} bệnh nhân chờ</span>
+                        </div>
+                        <div style="display: grid; gap: 10px;">
+                            {% for appointment in group.appointments %}
+                                <div class="queue-item">
+                                    <div class="queue-number">{{ appointment.queue_number|default:"--" }}</div>
+                                    <div>
+                                        <strong>{{ appointment.patient.full_name }}</strong>
+                                        <div class="help-text">
+                                            {{ appointment.chief_complaint|default:"Chưa nhập lý do khám" }}
+                                            {% if appointment.checked_in_at %} · Check-in {{ appointment.checked_in_at|date:"H:i" }}{% endif %}
+                                        </div>
+                                        <div class="help-text">
+                                            {{ appointment.doctor_schedule.shift.name }} · {{ appointment.start_time|time:"H:i" }} - {{ appointment.end_time|time:"H:i" }} · {{ appointment.get_visit_type_display }}
+                                        </div>
+                                        <div class="alert-stack">
+                                            <span class="badge priority-{{ appointment.priority_level }}">{{ appointment.get_priority_level_display }}</span>
+                                        </div>
+                                        {% if appointment.medical_alerts or appointment.admin_alerts %}
+                                            <div class="alert-stack">
+                                                {% for alert in appointment.medical_alerts %}
+                                                    <span class="alert-chip medical">{{ alert }}</span>
+                                                {% endfor %}
+                                                {% for alert in appointment.admin_alerts %}
+                                                    <span class="alert-chip admin">{{ alert }}</span>
+                                                {% endfor %}
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="empty-state">Chưa có bệnh nhân nào đã check-in trong ngày hôm nay.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

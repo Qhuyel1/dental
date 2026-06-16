@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Lịch trực bác sĩ{% endblock %}
+{% block page_title %}Đăng ký lịch trực bác sĩ{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Tổng cộng {{ paginator.count }} lịch trực</p>{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <form class="filter-form" method="get">
+            <input class="form-control" type="date" name="date" value="{{ selected_date }}">
+            <select name="doctor">
+                <option value="">Tất cả bác sĩ</option>
+                {% for doctor in doctors %}
+                    <option value="{{ doctor.pk }}" {% if selected_doctor == doctor.pk|stringformat:"s" %}selected{% endif %}>{{ doctor.full_name }}</option>
+                {% endfor %}
+            </select>
+            <select name="status">
+                <option value="">Tất cả trạng thái</option>
+                {% for value, label in status_choices %}
+                    <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Lọc</button>
+            {% if selected_date or selected_doctor or selected_status %}<a class="button secondary" href="{% url 'clinic:doctor-schedule-list' %}">Xóa lọc</a>{% endif %}
+        </form>
+        {% if perms.clinic.add_doctorschedule %}<a class="button" href="{% url 'clinic:doctor-schedule-create' %}">Đăng ký lịch trực</a>{% endif %}
+    </div>
+
+    <div class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ngày trực</th>
+                        <th>Bác sĩ</th>
+                        <th>Ca làm việc</th>
+                        <th>Ghi chú</th>
+                        <th>Trạng thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for schedule in doctor_schedules %}
+                        <tr>
+                            <td>{{ schedule.work_date|date:"d/m/Y" }}<br><span class="help-text">{{ schedule.shift.get_weekday_display }}</span></td>
+                            <td><strong>{{ schedule.doctor.full_name }}</strong><br><span class="help-text">{{ schedule.doctor.employee_code }}</span></td>
+                            <td>{{ schedule.shift.name }}<br><span class="help-text">{{ schedule.shift.start_time|time:"H:i" }} - {{ schedule.shift.end_time|time:"H:i" }}</span></td>
+                            <td>{{ schedule.note|default:"-" }}</td>
+                            <td>
+                                {% if schedule.status == "registered" %}
+                                    <span class="badge active">{{ schedule.get_status_display }}</span>
+                                {% else %}
+                                    <span class="badge inactive">{{ schedule.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="actions">
+                                    {% if perms.clinic.change_doctorschedule %}<a class="button secondary icon-button icon-edit" href="{% url 'clinic:doctor-schedule-update' schedule.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>{% endif %}
+                                    {% if perms.clinic.delete_doctorschedule %}<a class="button secondary icon-button icon-delete" href="{% url 'clinic:doctor-schedule-delete' schedule.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>{% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="6">Chưa có lịch trực phù hợp.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include "includes/pagination.html" %}
+{% endblock %}

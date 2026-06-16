@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Xóa thuốc{% endblock %}
+{% block page_title %}Xóa thuốc{% endblock %}
+
+{% block content %}
+    <form class="panel" method="post">
+        {% csrf_token %}
+        <div class="panel-body">
+            <div class="danger-zone">
+                <p>Bạn đang xóa thuốc <strong>{{ object.name }}</strong> ({{ object.medicine_code }}).</p>
+            </div>
+            <div class="actions" style="margin-top: 18px;">
+                <button class="danger icon-button icon-delete" type="submit" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></button>
+                <a class="button secondary" href="{% url 'clinic:medicine-detail' object.pk %}">Hủy</a>
+            </div>
+        </div>
+    </form>
+{% endblock %}

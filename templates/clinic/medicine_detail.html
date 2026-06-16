@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}{{ medicine.name }}{% endblock %}
+{% block page_title %}{{ medicine.name }}{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Mã: {{ medicine.medicine_code }}</p>{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <div></div>
+        <div class="actions">
+            {% if perms.clinic.change_medicine %}<a class="button secondary icon-button icon-edit" href="{% url 'clinic:medicine-update' medicine.pk %}" title="Chỉnh sửa" aria-label="Chỉnh sửa"><span class="sr-only">Chỉnh sửa</span></a>{% endif %}
+            {% if perms.clinic.delete_medicine %}<a class="button secondary icon-button icon-delete" href="{% url 'clinic:medicine-delete' medicine.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>{% endif %}
+            <a class="button secondary" href="{% url 'clinic:medicine-list' %}">Danh sách thuốc</a>
+        </div>
+    </div>
+
+    <div class="panel panel-body">
+        <div class="form-grid">
+            <div>
+                <div class="form-row">
+                    <label>Tên thuốc</label>
+                    <p><strong>{{ medicine.name }}</strong></p>
+                </div>
+                <div class="form-row">
+                    <label>Hàm lượng</label>
+                    <p>{{ medicine.strength|default:"—" }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Hoạt chất</label>
+                    <p>{{ medicine.active_ingredient|default:"—" }}</p>
+                </div>
+            </div>
+            <div>
+                <div class="form-row">
+                    <label>Đơn vị</label>
+                    <p>{{ medicine.unit|default:"—" }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Trạng thái</label>
+                    <p>
+                        {% if medicine.is_active %}
+                            <span class="badge active">Đang dùng</span>
+                        {% else %}
+                            <span class="badge inactive">Ngưng</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            <div class="form-row full">
+                <label>Hướng dẫn chung</label>
+                <p style="white-space: pre-wrap;">{{ medicine.usage_note|default:"—" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel panel-body" style="margin-top: 16px;">
+        <div class="toolbar">
+            <h2 style="font-size: 20px; margin: 0;">Lịch sử kê thuốc</h2>
+            <a class="button secondary" href="{% url 'clinic:prescription-list' %}">Danh sách đơn thuốc</a>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Đơn thuốc</th>
+                        <th>Bệnh nhân</th>
+                        <th>Ngày kê</th>
+                        <th>Liều dùng</th>
+                        <th>Số lượng</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in recent_prescription_items %}
+                        <tr>
+                            <td><a href="{% url 'clinic:prescription-detail' item.prescription.pk %}">{{ item.prescription.prescription_code }}</a></td>
+                            <td>{{ item.prescription.patient.full_name }}</td>
+                            <td>{{ item.prescription.prescribed_at|date:"d/m/Y" }}</td>
+                            <td>{{ item.dosage }}</td>
+                            <td>{{ item.quantity }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="5">Chưa có lịch sử kê thuốc này.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

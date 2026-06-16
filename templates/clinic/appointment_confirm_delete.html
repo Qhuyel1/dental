@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Xóa lịch khám{% endblock %}
+{% block page_title %}Xóa lịch khám{% endblock %}
+
+{% block content %}
+    <form class="panel" method="post">
+        {% csrf_token %}
+        <div class="panel-body">
+            <div class="danger-zone">
+                <p>Bạn đang xóa lịch khám <strong>{{ object.appointment_code }}</strong> của bệnh nhân <strong>{{ object.patient.full_name }}</strong>.</p>
+            </div>
+            <div class="actions" style="margin-top: 18px;">
+                <button class="danger icon-button icon-delete" type="submit" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></button>
+                <a class="button secondary" href="{% url 'clinic:appointment-detail' object.pk %}">Hủy</a>
+            </div>
+        </div>
+    </form>
+{% endblock %}

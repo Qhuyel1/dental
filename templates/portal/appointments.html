@@ -1,0 +1,75 @@
+{% extends "portal/base.html" %}
+
+{% block title %}Lịch khám — Hồ sơ bệnh nhân{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Lịch sử lịch khám</h1>
+    <p>Tất cả các lần khám của bạn tại phòng khám.</p>
+</div>
+
+<div class="card">
+    {% if appointments %}
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Ngày khám</th>
+                <th>Bác sĩ</th>
+                <th>Ca làm việc</th>
+                <th>Dịch vụ dự kiến</th>
+                <th>Trạng thái</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for appt in appointments %}
+            <tr>
+                <td><strong>{{ appt.doctor_schedule.work_date|date:"d/m/Y" }}</strong></td>
+                <td>{{ appt.doctor_schedule.doctor.full_name }}</td>
+                <td>
+                    {{ appt.doctor_schedule.shift.name }}<br>
+                    <small style="color: var(--muted);">
+                        {{ appt.doctor_schedule.shift.start_time|time:"H:i" }} – {{ appt.doctor_schedule.shift.end_time|time:"H:i" }}
+                    </small>
+                </td>
+                <td>{{ appt.service.name|default:"—" }}</td>
+                <td>
+                    {% if appt.status == "completed" %}
+                        <span class="badge badge-success">Đã hoàn thành</span>
+                    {% elif appt.status == "cancelled" %}
+                        <span class="badge badge-danger">Đã hủy</span>
+                    {% elif appt.status == "confirmed" %}
+                        <span class="badge badge-info">Đã xác nhận</span>
+                    {% else %}
+                        <span class="badge badge-warning">{{ appt.get_status_display }}</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if is_paginated %}
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}">Trước</a>
+        {% endif %}
+        {% for num in page_obj.paginator.page_range %}
+            {% if page_obj.number == num %}
+                <span class="current">{{ num }}</span>
+            {% else %}
+                <a href="?page={{ num }}">{{ num }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Sau</a>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% else %}
+    <div class="empty-state">
+        <p>Chưa có lịch khám nào được ghi nhận.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

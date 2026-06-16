@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block title %}Quản lý bệnh nhân{% endblock %}
+{% block page_title %}Quản lý bệnh nhân{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Tổng cộng {{ paginator.count }} bệnh nhân</p>{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <form class="filter-form" method="get">
+            <input class="form-control" type="text" name="q" value="{{ keyword }}" placeholder="Tìm mã, họ tên, CCCD, điện thoại, email, địa chỉ">
+            <select name="gender">
+                <option value="">Tất cả giới tính</option>
+                {% for value, label in gender_choices %}
+                    <option value="{{ value }}" {% if selected_gender == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <select name="status">
+                <option value="">Tất cả trạng thái</option>
+                <option value="active" {% if selected_status == "active" %}selected{% endif %}>Hoạt động</option>
+                <option value="inactive" {% if selected_status == "inactive" %}selected{% endif %}>Ngưng</option>
+            </select>
+            <button type="submit">Tìm kiếm</button>
+            {% if keyword or selected_gender or selected_status %}<a class="button secondary" href="{% url 'clinic:patient-list' %}">Xóa lọc</a>{% endif %}
+        </form>
+        {% if perms.clinic.add_patient %}<a class="button" href="{% url 'clinic:patient-create' %}">+ Thêm bệnh nhân</a>{% endif %}
+    </div>
+
+    <div class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã BN</th>
+                        <th>Họ và tên</th>
+                        <th>Ngày sinh / Tuổi</th>
+                        <th>Giới tính</th>
+                        <th>Liên hệ</th>
+                        <th>Y tế</th>
+                        <th>Trạng thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for patient in patients %}
+                        <tr>
+                            <td><a href="{% url 'clinic:patient-detail' patient.pk %}">{{ patient.patient_code }}</a></td>
+                            <td>
+                                <strong>{{ patient.full_name }}</strong>
+                                {% if patient.national_id %}<br><span class="help-text">CCCD: {{ patient.national_id }}</span>{% endif %}
+                            </td>
+                            <td>
+                                {{ patient.date_of_birth|date:"d/m/Y"|default:"-" }}
+                                {% if patient.age %}<br><span class="help-text">{{ patient.age }} tuổi</span>{% endif %}
+                            </td>
+                            <td>{{ patient.get_gender_display }}</td>
+                            <td>
+                                {{ patient.phone|default:"-" }}
+                                {% if patient.email %}<br><span class="help-text">{{ patient.email }}</span>{% endif %}
+                                {% if patient.emergency_contact_phone %}<br><span class="help-text">Khẩn cấp: {{ patient.emergency_contact_phone }}</span>{% endif %}
+                            </td>
+                            <td>
+                                {% if patient.blood_type %}Nhóm máu: {{ patient.get_blood_type_display }}{% else %}-{% endif %}
+                                {% if patient.allergy_note %}<br><span class="help-text">Có ghi chú dị ứng</span>{% endif %}
+                            </td>
+                            <td>
+                                {% if patient.is_active %}
+                                    <span class="badge active">Hoạt động</span>
+                                {% else %}
+                                    <span class="badge inactive">Ngưng</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary icon-button icon-view" href="{% url 'clinic:patient-detail' patient.pk %}" title="Xem" aria-label="Xem"><span class="sr-only">Xem</span></a>
+                                    {% if perms.clinic.change_patient %}<a class="button secondary icon-button icon-edit" href="{% url 'clinic:patient-update' patient.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>{% endif %}
+                                    {% if perms.clinic.delete_patient %}<a class="button secondary icon-button icon-delete" href="{% url 'clinic:patient-delete' patient.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>{% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="8">Chưa có bệnh nhân nào phù hợp.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include "includes/pagination.html" %}
+{% endblock %}

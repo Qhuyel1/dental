@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %}Xóa lô vật tư{% endblock %}
+{% block page_title %}Xóa lô vật tư{% endblock %}
+
+{% block content %}
+    <form class="panel" method="post">
+        {% csrf_token %}
+        <div class="panel-body">
+            <div class="danger-zone">
+                <p>
+                    Bạn đang xóa lô <strong>{{ object.lot_number|default:"không số lô" }}</strong>
+                    của vật tư <strong>{{ object.supply.name }}</strong>.
+                </p>
+            </div>
+            <div class="actions" style="margin-top: 18px;">
+                <button class="danger icon-button icon-delete" type="submit" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></button>
+                <a class="button secondary" href="{% url 'clinic:supply-detail' object.supply.pk %}">Hủy</a>
+            </div>
+        </div>
+    </form>
+{% endblock %}

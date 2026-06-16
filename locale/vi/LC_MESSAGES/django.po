@@ -1,0 +1,228 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-06-08 13:41+0700\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+#: apps/portal/views.py:31
+msgid "Tài khoản này không phải là tài khoản bệnh nhân."
+msgstr ""
+
+#: apps/portal/views.py:166
+msgid "Vui lòng nhập đầy đủ tiêu đề và nội dung."
+msgstr ""
+
+#: apps/portal/views.py:173
+msgid "Tiêu đề không được vượt quá 200 ký tự."
+msgstr ""
+
+#: apps/portal/views.py:180
+msgid "Nội dung tin nhắn không được vượt quá 2000 ký tự."
+msgstr ""
+
+#: apps/portal/views.py:224
+msgid "Cuộc hội thoại đã đóng."
+msgstr ""
+
+#: apps/portal/views.py:228
+msgid "Nội dung không được để trống."
+msgstr ""
+
+#: apps/portal/views.py:230
+msgid "Nội dung không được vượt quá 2000 ký tự."
+msgstr ""
+
+#: core/settings.py:147
+msgid "Tiếng Việt"
+msgstr ""
+
+#: core/settings.py:148
+msgid "English"
+msgstr ""
+
+#: templates/portal/base.html:7 templates/portal/invoices.html:4
+#: templates/portal/profile.html:4
+msgid "Hồ sơ bệnh nhân"
+msgstr ""
+
+#: templates/portal/base.html:7 templates/portal/base.html:390
+msgid "Nha khoa"
+msgstr ""
+
+#: templates/portal/base.html:391
+msgid "Cổng thông tin bệnh nhân"
+msgstr ""
+
+#: templates/portal/base.html:401
+msgid "Tổng quan"
+msgstr ""
+
+#: templates/portal/base.html:404 templates/portal/profile.html:4
+#: templates/portal/profile.html:8
+msgid "Thông tin cá nhân"
+msgstr ""
+
+#: templates/portal/base.html:407
+msgid "Lịch khám"
+msgstr ""
+
+#: templates/portal/base.html:410 templates/portal/invoices.html:4
+msgid "Hóa đơn"
+msgstr ""
+
+#: templates/portal/base.html:413
+msgid "Đơn thuốc"
+msgstr ""
+
+#: templates/portal/base.html:416
+msgid "Hỗ trợ"
+msgstr ""
+
+#: templates/portal/base.html:458
+msgid "Đăng xuất"
+msgstr ""
+
+#: templates/portal/invoices.html:8
+msgid "Lịch sử hóa đơn"
+msgstr ""
+
+#: templates/portal/invoices.html:9
+msgid "Chi tiết các khoản phí và thanh toán của bạn."
+msgstr ""
+
+#: templates/portal/invoices.html:17
+msgid "Mã HĐ"
+msgstr ""
+
+#: templates/portal/invoices.html:18
+msgid "Ngày tạo"
+msgstr ""
+
+#: templates/portal/invoices.html:19
+msgid "Dịch vụ"
+msgstr ""
+
+#: templates/portal/invoices.html:20
+msgid "Tổng tiền"
+msgstr ""
+
+#: templates/portal/invoices.html:21
+msgid "Đã trả"
+msgstr ""
+
+#: templates/portal/invoices.html:22
+msgid "Trạng thái"
+msgstr ""
+
+#: templates/portal/invoices.html:41
+msgid "Đã thanh toán"
+msgstr ""
+
+#: templates/portal/invoices.html:43
+msgid "Thanh toán một phần"
+msgstr ""
+
+#: templates/portal/invoices.html:45
+msgid "Chưa thanh toán"
+msgstr ""
+
+#: templates/portal/invoices.html:56
+msgid "Trước"
+msgstr ""
+
+#: templates/portal/invoices.html:66
+msgid "Sau"
+msgstr ""
+
+#: templates/portal/invoices.html:73
+msgid "Chưa có hóa đơn nào được tạo."
+msgstr ""
+
+#: templates/portal/profile.html:9
+msgid "Thông tin hồ sơ bệnh nhân của bạn tại phòng khám."
+msgstr ""
+
+#: templates/portal/profile.html:13
+msgid "Thông tin cơ bản"
+msgstr ""
+
+#: templates/portal/profile.html:16
+msgid "Họ và tên"
+msgstr ""
+
+#: templates/portal/profile.html:20
+msgid "Mã bệnh nhân"
+msgstr ""
+
+#: templates/portal/profile.html:24
+msgid "Ngày sinh"
+msgstr ""
+
+#: templates/portal/profile.html:28
+msgid "Giới tính"
+msgstr ""
+
+#: templates/portal/profile.html:32 templates/portal/profile.html:98
+msgid "Số điện thoại"
+msgstr ""
+
+#: templates/portal/profile.html:36
+msgid "Email"
+msgstr ""
+
+#: templates/portal/profile.html:40
+msgid "Địa chỉ"
+msgstr ""
+
+#: templates/portal/profile.html:44
+msgid "Nghề nghiệp"
+msgstr ""
+
+#: templates/portal/profile.html:48
+msgid "Nhóm máu"
+msgstr ""
+
+#: templates/portal/profile.html:55
+msgid "Thông tin y tế"
+msgstr ""
+
+#: templates/portal/profile.html:58
+msgid "Tiền sử bệnh"
+msgstr ""
+
+#: templates/portal/profile.html:63
+msgid "Không có ghi chú"
+msgstr ""
+
+#: templates/portal/profile.html:68
+msgid "Thuốc đang sử dụng"
+msgstr ""
+
+#: templates/portal/profile.html:73 templates/portal/profile.html:83
+msgid "Không có"
+msgstr ""
+
+#: templates/portal/profile.html:78
+msgid "Dị ứng / ghi chú y tế"
+msgstr ""
+
+#: templates/portal/profile.html:91
+msgid "Liên hệ khẩn cấp"
+msgstr ""
+
+#: templates/portal/profile.html:94
+msgid "Người liên hệ"
+msgstr ""

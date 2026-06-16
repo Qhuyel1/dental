@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+
+{% block title %}Đơn thuốc{% endblock %}
+{% block page_title %}Quản lý đơn thuốc{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Kê đơn sau khi khám và xem lịch sử đơn thuốc bệnh nhân</p>{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <form class="filter-form" method="get">
+            <input class="form-control" type="text" name="q" value="{{ keyword }}" placeholder="Tìm mã đơn, bệnh nhân, chẩn đoán">
+            <input class="form-control" type="date" name="date_from" value="{{ selected_date_from }}">
+            <input class="form-control" type="date" name="date_to" value="{{ selected_date_to }}">
+            <select name="patient">
+                <option value="">Tất cả bệnh nhân</option>
+                {% for patient in patients %}
+                    <option value="{{ patient.pk }}" {% if selected_patient == patient.pk|stringformat:"s" %}selected{% endif %}>{{ patient.full_name }}</option>
+                {% endfor %}
+            </select>
+            <select name="doctor">
+                <option value="">Tất cả bác sĩ</option>
+                {% for doctor in doctors %}
+                    <option value="{{ doctor.pk }}" {% if selected_doctor == doctor.pk|stringformat:"s" %}selected{% endif %}>{{ doctor.full_name }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit">Lọc</button>
+            {% if keyword or selected_patient or selected_doctor or selected_date_from or selected_date_to %}<a class="button secondary" href="{% url 'clinic:prescription-list' %}">Xóa lọc</a>{% endif %}
+        </form>
+        <a class="button" href="{% url 'clinic:prescription-create' %}">Tạo đơn thuốc</a>
+    </div>
+
+    <div class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã đơn</th>
+                        <th>Bệnh nhân</th>
+                        <th>Bác sĩ</th>
+                        <th>Ngày kê</th>
+                        <th>Chẩn đoán</th>
+                        <th>Số thuốc</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for prescription in prescriptions %}
+                        <tr>
+                            <td><a href="{% url 'clinic:prescription-detail' prescription.pk %}">{{ prescription.prescription_code }}</a></td>
+                            <td>
+                                <strong>{{ prescription.patient.full_name }}</strong><br>
+                                <span class="help-text">{{ prescription.patient.patient_code }}{% if prescription.patient.phone %} - {{ prescription.patient.phone }}{% endif %}</span>
+                            </td>
+                            <td>{{ prescription.doctor.full_name|default:"—" }}</td>
+                            <td>{{ prescription.prescribed_at|date:"d/m/Y" }}</td>
+                            <td>{{ prescription.diagnosis|default:"—" }}</td>
+                            <td>{{ prescription.item_count }}</td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary icon-button icon-view" href="{% url 'clinic:prescription-detail' prescription.pk %}" title="Xem" aria-label="Xem"><span class="sr-only">Xem</span></a>
+                                    <a class="button secondary icon-button icon-edit" href="{% url 'clinic:prescription-update' prescription.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="7">Chưa có đơn thuốc phù hợp.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include "includes/pagination.html" %}
+{% endblock %}

@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+
+{% block title %}{{ supply.name }}{% endblock %}
+{% block page_title %}{{ supply.name }}{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Mã: {{ supply.supply_code }} · {{ supply.get_category_display }}</p>{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <div class="actions">
+            <a class="button secondary" href="{% url 'clinic:supply-list' %}">Danh sách vật tư</a>
+            <a class="button secondary icon-button icon-edit" href="{% url 'clinic:supply-update' supply.pk %}" title="Chỉnh sửa" aria-label="Chỉnh sửa"><span class="sr-only">Chỉnh sửa</span></a>
+            <a class="button secondary icon-button icon-delete" href="{% url 'clinic:supply-delete' supply.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>
+        </div>
+        <div class="actions">
+            <a class="button secondary" href="{% url 'clinic:supply-lot-create' supply.pk %}">Nhập kho</a>
+            <a class="button" href="{% url 'clinic:supply-export-create' supply.pk %}">Xuất kho</a>
+        </div>
+    </div>
+
+    <div class="panel panel-body">
+        <div class="metric-grid" style="margin-bottom: 18px;">
+            <div class="metric">
+                <div class="metric-value">{{ supply.stock_quantity|floatformat:-2 }}</div>
+                <div class="metric-label">Tồn hiện tại ({{ supply.unit }})</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">{{ supply.minimum_quantity|floatformat:-2 }}</div>
+                <div class="metric-label">Ngưỡng cảnh báo</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">{{ supply.expiring_lot_count }}</div>
+                <div class="metric-label">Lô sắp hết hạn</div>
+            </div>
+            <div class="metric">
+                <div class="metric-value">{{ supply.expired_lot_count }}</div>
+                <div class="metric-label">Lô đã hết hạn</div>
+            </div>
+        </div>
+
+        <div class="form-grid">
+            <div>
+                <div class="form-row">
+                    <label>Đơn vị tính</label>
+                    <p>{{ supply.unit }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Trạng thái tồn</label>
+                    <p>
+                        {% if supply.stock_quantity <= 0 %}
+                            <span class="badge danger">Hết hàng</span>
+                        {% elif supply.minimum_quantity > 0 and supply.stock_quantity <= supply.minimum_quantity %}
+                            <span class="badge warning">Sắp hết hàng</span>
+                        {% else %}
+                            <span class="badge active">Đủ tồn</span>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+            <div>
+                <div class="form-row">
+                    <label>Trạng thái sử dụng</label>
+                    <p>
+                        {% if supply.is_active %}
+                            <span class="badge active">Đang dùng</span>
+                        {% else %}
+                            <span class="badge inactive">Ngưng</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="form-row">
+                    <label>Nhóm vật tư</label>
+                    <p>{{ supply.get_category_display }}</p>
+                </div>
+            </div>
+            <div class="form-row full">
+                <label>Mô tả</label>
+                <p style="white-space: pre-wrap;">{{ supply.description|default:"—" }}</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="panel panel-body" style="margin-top: 16px;">
+        <div class="toolbar">
+            <h2 style="font-size: 20px; margin: 0;">Lô nhập kho</h2>
+            <a class="button secondary" href="{% url 'clinic:supply-lot-create' supply.pk %}">Nhập kho</a>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Số lô</th>
+                        <th>Ngày nhập</th>
+                        <th>Hạn dùng</th>
+                        <th>Nhập</th>
+                        <th>Tồn</th>
+                        <th>Nhà cung cấp</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for lot in lots %}
+                        <tr>
+                            <td>{{ lot.lot_number|default:"—" }}</td>
+                            <td>{{ lot.received_date|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if lot.expiry_date %}
+                                    {{ lot.expiry_date|date:"d/m/Y" }}
+                                    {% if lot.is_expired %}
+                                        <br><span class="badge danger">Đã hết hạn</span>
+                                    {% elif lot.is_expiring_soon %}
+                                        <br><span class="badge warning">Sắp hết hạn</span>
+                                    {% endif %}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                            <td>{{ lot.initial_quantity|floatformat:-2 }} {{ supply.unit }}</td>
+                            <td><strong>{{ lot.current_quantity|floatformat:-2 }}</strong> {{ supply.unit }}</td>
+                            <td>{{ lot.supplier|default:"—" }}</td>
+                            <td>
+                                <div class="actions">
+                                    {% if lot.current_quantity > 0 and not lot.is_expired %}
+                                        <a class="button secondary" href="{% url 'clinic:supply-export-create' supply.pk %}?lot={{ lot.pk }}">Xuất</a>
+                                    {% endif %}
+                                    <a class="button secondary icon-button icon-edit" href="{% url 'clinic:supply-lot-update' lot.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>
+                                    <a class="button secondary icon-button icon-delete" href="{% url 'clinic:supply-lot-delete' lot.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="7">Chưa có lô nhập kho cho vật tư này.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel panel-body" style="margin-top: 16px;">
+        <div class="toolbar">
+            <h2 style="font-size: 20px; margin: 0;">Xuất kho gần đây</h2>
+            <a class="button secondary" href="{% url 'clinic:supply-export-create' supply.pk %}">Xuất kho</a>
+        </div>
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ngày xuất</th>
+                        <th>Lô</th>
+                        <th>Số lượng</th>
+                        <th>Mục đích</th>
+                        <th>Người thực hiện</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for export in recent_exports %}
+                        <tr>
+                            <td>{{ export.export_date|date:"d/m/Y" }}</td>
+                            <td>{{ export.lot.lot_number|default:"—" }}</td>
+                            <td>{{ export.quantity|floatformat:-2 }} {{ supply.unit }}</td>
+                            <td>{{ export.used_for|default:"—" }}</td>
+                            <td>{{ export.performed_by|default:"—" }}</td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary icon-button icon-edit" href="{% url 'clinic:supply-export-update' export.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>
+                                    <a class="button secondary icon-button icon-delete" href="{% url 'clinic:supply-export-delete' export.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="6">Chưa có phiếu xuất kho cho vật tư này.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

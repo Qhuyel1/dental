@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block title %}Danh mục dịch vụ{% endblock %}
+{% block page_title %}Quản lý danh mục dịch vụ{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <form class="filter-form" method="get">
+            <input class="form-control" type="text" name="q" value="{{ keyword }}" placeholder="Tìm mã hoặc tên danh mục">
+            <select name="status">
+                <option value="">Tất cả trạng thái</option>
+                <option value="active" {% if selected_status == "active" %}selected{% endif %}>Đang dùng</option>
+                <option value="inactive" {% if selected_status == "inactive" %}selected{% endif %}>Ngưng</option>
+            </select>
+            <button type="submit">Tìm kiếm</button>
+            {% if keyword or selected_status %}<a class="button secondary" href="{% url 'clinic:service-category-list' %}">Xóa lọc</a>{% endif %}
+        </form>
+        {% if perms.clinic.add_servicecategory %}<a class="button" href="{% url 'clinic:service-category-create' %}">Thêm danh mục</a>{% endif %}
+    </div>
+
+    <div class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Tên danh mục</th>
+                        <th>Mô tả</th>
+                        <th>Số dịch vụ</th>
+                        <th>Trạng thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for category in categories %}
+                        <tr>
+                            <td><a href="{% url 'clinic:service-category-detail' category.pk %}">{{ category.code }}</a></td>
+                            <td><strong>{{ category.name }}</strong></td>
+                            <td>{{ category.description|default:"-" }}</td>
+                            <td>{{ category.service_count }}</td>
+                            <td>
+                                {% if category.is_active %}
+                                    <span class="badge active">Đang dùng</span>
+                                {% else %}
+                                    <span class="badge inactive">Ngưng</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary icon-button icon-view" href="{% url 'clinic:service-category-detail' category.pk %}" title="Xem" aria-label="Xem"><span class="sr-only">Xem</span></a>
+                                    {% if perms.clinic.change_servicecategory %}<a class="button secondary icon-button icon-edit" href="{% url 'clinic:service-category-update' category.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>{% endif %}
+                                    {% if perms.clinic.delete_servicecategory %}<a class="button secondary icon-button icon-delete" href="{% url 'clinic:service-category-delete' category.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>{% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="6">Chưa có danh mục phù hợp.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include "includes/pagination.html" %}
+{% endblock %}

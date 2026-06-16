@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% block title %}Xóa bảng giá{% endblock %}
+{% block page_title %}Xóa bảng giá{% endblock %}
+
+{% block content %}
+    <form class="panel" method="post">
+        {% csrf_token %}
+        <div class="panel-body">
+            <div class="danger-zone">
+                <p>Bạn đang xóa bảng giá <strong>{{ object.name }}</strong> và các đơn giá bên trong.</p>
+            </div>
+            <div class="actions" style="margin-top: 18px;">
+                <button class="danger icon-button icon-delete" type="submit" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></button>
+                <a class="button secondary" href="{% url 'clinic:price-list-list' %}">Hủy</a>
+            </div>
+        </div>
+    </form>
+{% endblock %}

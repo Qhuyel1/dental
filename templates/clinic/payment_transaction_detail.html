@@ -1,0 +1,105 @@
+{% extends "base.html" %}
+
+{% block title %}Giao dịch MoMo{% endblock %}
+{% block page_title %}Giao dịch MoMo{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">{{ invoice.invoice_code }} · {{ payment_transaction.amount|floatformat:0 }} VND</p>{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <div class="actions">
+            <a class="button secondary" href="{% url 'clinic:invoice-detail' invoice.pk %}">Về hóa đơn</a>
+            {% if payment_transaction.pay_url %}
+                <a class="button" href="{{ payment_transaction.pay_url }}" target="_blank" rel="noopener">Mở trang thanh toán</a>
+            {% endif %}
+        </div>
+        <div class="actions">
+            <form class="inline-form" method="post" action="{% url 'clinic:payment-transaction-query' payment_transaction.pk %}">
+                {% csrf_token %}
+                <button class="secondary" type="submit">Kiểm tra trạng thái</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="metric-grid" style="margin-bottom: 16px;">
+        <div class="metric">
+            <div class="metric-value">{{ payment_transaction.amount|floatformat:0 }}</div>
+            <div class="metric-label">Số tiền (VND)</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value">
+                {% if payment_transaction.status == "success" %}
+                    Thành công
+                {% elif payment_transaction.status == "failed" %}
+                    Thất bại
+                {% elif payment_transaction.status == "review" %}
+                    Kiểm tra
+                {% else %}
+                    Chờ
+                {% endif %}
+            </div>
+            <div class="metric-label">Trạng thái</div>
+        </div>
+        <div class="metric">
+            <div class="metric-value">{{ payment_transaction.trans_id|default:"—" }}</div>
+            <div class="metric-label">Mã giao dịch MoMo</div>
+        </div>
+    </div>
+
+    <div class="panel panel-body" style="margin-bottom: 16px;">
+        <div class="form-grid">
+            <div>
+                <div class="form-row">
+                    <label>Mã đối tác</label>
+                    <p>{{ payment_transaction.order_id }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Request ID</label>
+                    <p>{{ payment_transaction.request_id }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Thông điệp</label>
+                    <p>{{ payment_transaction.provider_message|default:"—" }}</p>
+                </div>
+            </div>
+            <div>
+                <div class="form-row">
+                    <label>Email biên nhận</label>
+                    <p>{{ payment_transaction.customer_email|default:"—" }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Mail đã gửi lúc</label>
+                    <p>{{ payment_transaction.receipt_email_sent_at|date:"d/m/Y H:i"|default:"—" }}</p>
+                </div>
+                <div class="form-row">
+                    <label>Lỗi gửi mail</label>
+                    <p style="white-space: pre-wrap;">{{ payment_transaction.receipt_email_error|default:"—" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="report-grid compact">
+        <div class="panel panel-body">
+            <h2 style="font-size: 20px; margin-top: 0;">Mã QR thanh toán</h2>
+            {% if qr_svg %}
+                <div style="max-width: 320px; margin: 0 auto;">{{ qr_svg|safe }}</div>
+            {% else %}
+                <p class="empty-state">Chưa tạo được ảnh QR. Bạn vẫn có thể dùng đường dẫn thanh toán bên dưới.</p>
+            {% endif %}
+            {% if payment_transaction.qr_code_url %}
+                <div class="help-text" style="margin-top: 12px; word-break: break-all;">{{ payment_transaction.qr_code_url }}</div>
+            {% endif %}
+        </div>
+        <div class="panel panel-body">
+            <h2 style="font-size: 20px; margin-top: 0;">Liên kết thanh toán</h2>
+            {% if payment_transaction.pay_url %}
+                <p style="word-break: break-all;"><a href="{{ payment_transaction.pay_url }}" target="_blank" rel="noopener">{{ payment_transaction.pay_url }}</a></p>
+            {% else %}
+                <p class="empty-state">MoMo chưa trả về liên kết thanh toán.</p>
+            {% endif %}
+            <div class="help-text" style="margin-top: 14px;">
+                Trang này chỉ tạo QR / link và theo dõi trạng thái. Hóa đơn chỉ được cộng tiền khi IPN từ MoMo xác nhận giao dịch thành công.
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Dịch vụ{% endblock %}
+{% block page_title %}Quản lý dịch vụ{% endblock %}
+
+{% block content %}
+    <div class="toolbar">
+        <form class="filter-form" method="get">
+            <input class="form-control" type="text" name="q" value="{{ keyword }}" placeholder="Tìm mã, tên dịch vụ, mô tả">
+            <select name="category">
+                <option value="">Tất cả danh mục</option>
+                {% for category in categories %}
+                    <option value="{{ category.pk }}" {% if selected_category == category.pk|stringformat:"s" %}selected{% endif %}>{{ category.name }}</option>
+                {% endfor %}
+            </select>
+            <select name="status">
+                <option value="">Tất cả trạng thái</option>
+                <option value="active" {% if selected_status == "active" %}selected{% endif %}>Đang dùng</option>
+                <option value="inactive" {% if selected_status == "inactive" %}selected{% endif %}>Ngưng</option>
+            </select>
+            <select name="price_status">
+                <option value="">Tất cả giá</option>
+                <option value="priced" {% if selected_price_status == "priced" %}selected{% endif %}>Có giá hiện hành</option>
+                <option value="missing" {% if selected_price_status == "missing" %}selected{% endif %}>Thiếu giá hiện hành</option>
+            </select>
+            <button type="submit">Tìm kiếm</button>
+            {% if keyword or selected_category or selected_status or selected_price_status %}<a class="button secondary" href="{% url 'clinic:service-list' %}">Xóa lọc</a>{% endif %}
+        </form>
+        {% if perms.clinic.add_service %}<a class="button" href="{% url 'clinic:service-create' %}">Thêm dịch vụ</a>{% endif %}
+    </div>
+
+    <div class="panel">
+        <div class="table-wrap">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Mã</th>
+                        <th>Dịch vụ</th>
+                        <th>Danh mục</th>
+                        <th>Thời lượng</th>
+                        <th>Giá hiện hành</th>
+                        <th>Trạng thái</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for service in services %}
+                        <tr>
+                            <td><a href="{% url 'clinic:service-detail' service.pk %}">{{ service.code }}</a></td>
+                            <td><strong>{{ service.name }}</strong>{% if service.description %}<br><span class="help-text">{{ service.description }}</span>{% endif %}</td>
+                            <td><a href="{% url 'clinic:service-category-detail' service.category.pk %}">{{ service.category.name }}</a></td>
+                            <td>{% if service.duration_minutes %}{{ service.duration_minutes }} phút{% else %}-{% endif %}</td>
+                            <td>
+                                {% if service.current_price %}
+                                    {{ service.current_price|floatformat:0 }} VND
+                                    <br><span class="help-text">{{ service.current_price_list }}</span>
+                                {% else %}
+                                    <span class="help-text">Chưa có giá hiện hành</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if service.is_active %}
+                                    <span class="badge active">Đang dùng</span>
+                                {% else %}
+                                    <span class="badge inactive">Ngưng</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="actions">
+                                    <a class="button secondary icon-button icon-view" href="{% url 'clinic:service-detail' service.pk %}" title="Xem" aria-label="Xem"><span class="sr-only">Xem</span></a>
+                                    {% if perms.clinic.change_service %}<a class="button secondary icon-button icon-edit" href="{% url 'clinic:service-update' service.pk %}" title="Sửa" aria-label="Sửa"><span class="sr-only">Sửa</span></a>{% endif %}
+                                    {% if perms.clinic.delete_service %}<a class="button secondary icon-button icon-delete" href="{% url 'clinic:service-delete' service.pk %}" title="Xóa" aria-label="Xóa"><span class="sr-only">Xóa</span></a>{% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td class="empty-state" colspan="7">Chưa có dịch vụ phù hợp.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% include "includes/pagination.html" %}
+{% endblock %}

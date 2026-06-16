@@ -1,0 +1,445 @@
+{% extends "base.html" %}
+
+{% block title %}{% if object %}Cập nhật lịch trực{% else %}Đăng ký lịch trực{% endif %}{% endblock %}
+{% block page_title %}{% if object %}Cập nhật lịch trực bác sĩ{% else %}Đăng ký lịch trực bác sĩ{% endif %}{% endblock %}
+
+{% block content %}
+    <style>
+        /* Custom Shift Selection Table & Modal Styles */
+        .shift-row-tr {
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+
+        .shift-row-tr:hover {
+            background-color: var(--hover-bg, #f8fafc) !important;
+        }
+
+        .shifts-table-container {
+            border: 1px solid var(--border, #cbd5e1);
+            border-radius: 8px;
+            overflow: hidden;
+            background: #fff;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+            margin-top: 8px;
+        }
+
+        .shifts-selection-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0;
+            font-size: 14px;
+        }
+
+        .shifts-selection-table th {
+            background: var(--hover-bg, #f8fafc);
+            border-bottom: 1px solid var(--border, #cbd5e1);
+            padding: 12px 16px;
+            font-weight: 600;
+            color: #475569;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .shifts-selection-table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border, #cbd5e1);
+            color: #334155;
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+        .shift-row-tr:last-child td {
+            border-bottom: none;
+        }
+
+        .shifts-selection-table input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* Beautiful interactive select trigger matching standard form inputs */
+        .custom-select-trigger {
+            background: #ffffff;
+            border: 1px solid #cbd5e1;
+            border-radius: 8px;
+            color: #94a3b8;
+            cursor: pointer;
+            min-height: 38px;
+            padding: 8px 12px;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: border-color 0.15s, box-shadow 0.15s;
+            user-select: none;
+        }
+
+        .custom-select-trigger:hover {
+            border-color: var(--primary, #8e84d8);
+            box-shadow: 0 0 0 2px rgba(142, 132, 216, 0.15);
+        }
+
+        .custom-select-trigger .dropdown-arrow {
+            font-size: 11px;
+            color: #94a3b8;
+            transition: transform 0.2s;
+        }
+        
+        .custom-select-trigger.has-selection {
+            color: var(--text, #3d3b43);
+            font-weight: 500;
+            border-color: var(--primary, #8e84d8);
+        }
+
+        /* Premium Modal Keyframe Animations */
+        @keyframes fadeInBackdrop {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInModal {
+            from { transform: scale(0.95) translateY(12px); opacity: 0; }
+            to { transform: scale(1) translateY(0); opacity: 1; }
+        }
+
+        .shifts-modal-backdrop {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.45);
+            backdrop-filter: blur(3px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+        }
+
+        .shifts-modal-backdrop.active {
+            display: flex;
+            animation: fadeInBackdrop 0.18s ease-out forwards;
+        }
+
+        .shifts-modal-container {
+            background: #fff;
+            width: 95%;
+            max-width: 780px;
+            border-radius: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            opacity: 0;
+        }
+
+        .shifts-modal-backdrop.active .shifts-modal-container {
+            animation: slideInModal 0.22s cubic-bezier(0.16, 1, 0.3, 1) 0.05s forwards;
+        }
+
+        .shifts-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+
+        .shifts-modal-header h3 {
+            margin: 0;
+            font-size: 18px;
+            color: #0f172a;
+            font-weight: 600;
+        }
+
+        .shifts-modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #64748b;
+            cursor: pointer;
+            padding: 4px;
+            line-height: 0.8;
+            transition: color 0.15s;
+        }
+
+        .shifts-modal-close:hover {
+            color: #0f172a;
+        }
+
+        .shifts-modal-body {
+            padding: 20px;
+            max-height: 380px;
+            overflow-y: auto;
+        }
+
+        .shifts-modal-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            padding: 16px 20px;
+            border-top: 1px solid #e2e8f0;
+            background: #f8fafc;
+        }
+
+        /* Selection Badge Styles */
+        .selected-shifts-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 8px;
+        }
+
+        .selected-shift-badge {
+            background: #e0f2fe;
+            color: #0369a1;
+            font-weight: 500;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid #bae6fd;
+            transition: all 0.15s;
+        }
+
+        .selected-shift-badge:hover {
+            background: #f0f9ff;
+        }
+    </style>
+
+    <form class="panel" method="post" id="doctor-schedule-form">
+        {% csrf_token %}
+        <div class="panel-body">
+            {% if form.non_field_errors %}
+                <div class="form-row full">
+                    {{ form.non_field_errors }}
+                </div>
+            {% endif %}
+
+            <div class="form-grid">
+                {% for field in form %}
+                    {% if field.name != "shifts" %}
+                        {% if field.is_hidden %}
+                            {{ field }}
+                        {% elif field.field.widget.input_type == "checkbox" %}
+                            <div class="form-row">
+                                <div class="checkbox-row">
+                                    {{ field }}
+                                    <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="required-mark">*</span>{% endif %}</label>
+                                </div>
+                                {% if field.help_text %}<div class="help-text">{{ field.help_text }}</div>{% endif %}
+                                {{ field.errors }}
+                            </div>
+                        {% else %}
+                            <div class="form-row">
+                                <label for="{{ field.id_for_label }}">{{ field.label }}{% if field.field.required %} <span class="required-mark">*</span>{% endif %}</label>
+                                {{ field }}
+                                {% if field.help_text %}<div class="help-text">{{ field.help_text }}</div>{% endif %}
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <!-- Custom shift selector area -->
+            <div class="form-row full" style="margin-top: 20px;">
+                <label style="font-weight: 600; margin-bottom: 6px; display: block;">{{ form.shifts.label }}{% if form.shifts.field.required %} <span class="required-mark">*</span>{% endif %}</label>
+                
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                    <div class="custom-select-trigger" id="open-shifts-modal-btn">
+                        <span id="selected-shifts-text">Chọn các ca đăng ký trực...</span>
+                        <span class="dropdown-arrow">▼</span>
+                    </div>
+                    
+                    <div class="selected-shifts-badges" id="selected-shifts-badges-list">
+                        <!-- Javascript will populate selected shift badges here -->
+                    </div>
+                </div>
+
+                {% if form.shifts.help_text %}<div class="help-text" style="margin-top: 6px;">{{ form.shifts.help_text }}</div>{% endif %}
+                {{ form.shifts.errors }}
+            </div>
+
+            <!-- Shifts Selection Modal (Nested inside form for guaranteed checkbox submit) -->
+            <div class="shifts-modal-backdrop" id="shifts-modal-backdrop">
+                <div class="shifts-modal-container">
+                    <div class="shifts-modal-header">
+                        <h3>Chọn các ca đăng ký trực</h3>
+                        <button type="button" class="shifts-modal-close" id="close-shifts-modal-btn">&times;</button>
+                    </div>
+                    
+                    <div class="shifts-modal-body">
+                        <div class="shifts-table-container" style="margin-top: 0;">
+                            <table class="shifts-selection-table" id="shifts-selection-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 80px; text-align: center;">Chọn</th>
+                                        <th>Tên ca trực</th>
+                                        <th>Ngày làm việc (Thứ)</th>
+                                        <th>Giờ làm việc</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for choice in form.shifts %}
+                                        <tr class="shift-row-tr">
+                                            <td style="text-align: center;">
+                                                {{ choice.tag }}
+                                            </td>
+                                            <td style="font-weight: 600; color: #0f172a;">
+                                                <span class="raw-label" style="display: none;">{{ choice.choice_label }}</span>
+                                                <span class="parsed-name"></span>
+                                            </td>
+                                            <td>
+                                                <span class="parsed-weekday"></span>
+                                            </td>
+                                            <td>
+                                                <span class="parsed-time badge" style="background: #f1f5f9; color: #475569; font-weight: 500; padding: 4px 8px; border-radius: 4px; font-size: 13px;"></span>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    <div class="shifts-modal-footer">
+                        <button type="button" class="button secondary" id="cancel-shifts-modal-btn">Hủy</button>
+                        <button type="button" class="button" id="confirm-shifts-modal-btn">Áp dụng</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="actions" style="margin-top: 28px;">
+                <button type="submit">Lưu</button>
+                <a class="button secondary" href="{% url 'clinic:doctor-schedule-list' %}">Hủy</a>
+            </div>
+        </div>
+    </form>
+
+    <script>
+        (function () {
+            // Modal DOM elements
+            const backdrop = document.getElementById("shifts-modal-backdrop");
+            const openBtn = document.getElementById("open-shifts-modal-btn");
+            const selectedShiftsText = document.getElementById("selected-shifts-text");
+            const closeBtn = document.getElementById("close-shifts-modal-btn");
+            const cancelBtn = document.getElementById("cancel-shifts-modal-btn");
+            const confirmBtn = document.getElementById("confirm-shifts-modal-btn");
+            
+            const badgesList = document.getElementById("selected-shifts-badges-list");
+            const table = document.getElementById("shifts-selection-table");
+            const checkboxes = table.querySelectorAll("input[type='checkbox']");
+
+            // Open Modal
+            openBtn.addEventListener("click", function (e) {
+                backdrop.classList.add("active");
+            });
+
+            // Close Modal (helper)
+            function closeModal() {
+                backdrop.classList.remove("active");
+            }
+
+            closeBtn.addEventListener("click", closeModal);
+            cancelBtn.addEventListener("click", closeModal);
+            confirmBtn.addEventListener("click", closeModal);
+
+            // Close when clicking outside of modal container
+            backdrop.addEventListener("click", function (e) {
+                if (e.target === backdrop) {
+                    closeModal();
+                }
+            });
+
+            // Parse shift raw labels and populate separate table columns
+            const rows = document.querySelectorAll(".shift-row-tr");
+            rows.forEach(function (row) {
+                const rawLabelSpan = row.querySelector(".raw-label");
+                if (rawLabelSpan) {
+                    const rawText = rawLabelSpan.textContent.trim();
+                    try {
+                        const parts = rawText.split(" - ");
+                        const name = parts[0];
+                        const rest = parts[1];
+                        const timeParts = rest.split(" (");
+                        const weekday = timeParts[0];
+                        const time = timeParts[1].replace(")", "");
+
+                        row.querySelector(".parsed-name").textContent = name;
+                        row.querySelector(".parsed-weekday").textContent = weekday;
+                        
+                        const timeBadge = row.querySelector(".parsed-time");
+                        timeBadge.textContent = time;
+                    } catch (e) {
+                        row.querySelector(".parsed-name").textContent = rawText;
+                    }
+                }
+
+                // Make entire row clickable to toggle checkbox
+                const checkbox = row.querySelector("input[type='checkbox']");
+                row.addEventListener("click", function (e) {
+                    if (e.target !== checkbox) {
+                        checkbox.checked = !checkbox.checked;
+                        checkbox.dispatchEvent(new Event("change"));
+                    }
+                });
+            });
+
+            // Update Selected Badges and Count Summary on main form
+            function updateSelectionDisplay() {
+                badgesList.innerHTML = "";
+                let count = 0;
+
+                checkboxes.forEach(function (checkbox) {
+                    if (checkbox.checked) {
+                        count++;
+                        
+                        const row = checkbox.closest("tr");
+                        const name = row.querySelector(".parsed-name").textContent.trim();
+                        const weekday = row.querySelector(".parsed-weekday").textContent.trim();
+                        const time = row.querySelector(".parsed-time").textContent.trim();
+
+                        const badge = document.createElement("div");
+                        badge.className = "selected-shift-badge";
+                        badge.innerHTML = `
+                            <span><strong>${name}</strong> (${weekday} - ${time})</span>
+                            <span class="remove-btn" style="cursor:pointer; font-weight:bold; margin-left:6px; font-size:16px; color:#ef4444; line-height:1;">&times;</span>
+                        `;
+
+                        badge.querySelector(".remove-btn").addEventListener("click", function (e) {
+                            e.stopPropagation();
+                            checkbox.checked = false;
+                            checkbox.dispatchEvent(new Event("change"));
+                            updateSelectionDisplay();
+                        });
+
+                        badgesList.appendChild(badge);
+                    }
+                });
+
+                if (count > 0) {
+                    selectedShiftsText.textContent = `Đã chọn ${count} ca làm việc`;
+                    openBtn.classList.add("has-selection");
+                } else {
+                    selectedShiftsText.textContent = "Chọn các ca đăng ký trực...";
+                    openBtn.classList.remove("has-selection");
+                }
+            }
+
+            // Listen for checkbox changes to update UI dynamically
+            checkboxes.forEach(function (checkbox) {
+                checkbox.addEventListener("change", updateSelectionDisplay);
+            });
+
+            // Initial run on load (for edit form population)
+            updateSelectionDisplay();
+        })();
+    </script>
+{% endblock %}

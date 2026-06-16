@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Xác nhận xóa cấu hình lương{% endblock %}
+{% block page_title %}Xóa cấu hình lương{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px;">
+    <div class="panel">
+        <div class="panel-body">
+            <p>Bạn có chắc muốn xóa cấu hình <strong>{{ object }}</strong> không?</p>
+            <p style="color: var(--danger); font-size: 14px;">⚠ Hành động này không thể hoàn tác.</p>
+            <form method="post" style="display: flex; gap: 10px; margin-top: 20px;">
+                {% csrf_token %}
+                <button type="submit" class="button danger">Xóa</button>
+                <a class="button secondary" href="{% url 'payroll:salary-config-list' %}">Hủy</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

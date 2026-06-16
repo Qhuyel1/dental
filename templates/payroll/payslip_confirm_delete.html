@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Xác nhận xóa phiếu lương{% endblock %}
+{% block page_title %}Xóa phiếu lương{% endblock %}
+
+{% block content %}
+<div style="max-width: 500px;">
+    <div class="panel">
+        <div class="panel-body">
+            <p>Bạn có chắc muốn xóa phiếu lương <strong>{{ object.payslip_code }}</strong> của bác sĩ <strong>{{ object.doctor.full_name }}</strong> tháng {{ object.month|stringformat:"02d" }}/{{ object.year }} không?</p>
+            {% if object.status == "paid" %}
+                <div class="message error">Phiếu lương đã thanh toán không thể xóa.</div>
+            {% else %}
+                <p style="color: var(--danger); font-size: 14px;">⚠ Toàn bộ chi tiết ca trực trong phiếu sẽ bị xóa. Hành động này không thể hoàn tác.</p>
+                <form method="post" style="display: flex; gap: 10px; margin-top: 20px;">
+                    {% csrf_token %}
+                    <button type="submit" class="button danger">Xóa phiếu lương</button>
+                    <a class="button secondary" href="{% url 'payroll:payslip-detail' object.pk %}">Hủy</a>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

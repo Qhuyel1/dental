@@ -1,0 +1,177 @@
+{% extends "base.html" %}
+{% block title %}Báo cáo lương bác sĩ năm {{ selected_year }}{% endblock %}
+{% block page_title %}Báo cáo lương bác sĩ — năm {{ selected_year }}{% endblock %}
+{% block page_subtitle %}<p class="page-subtitle">Theo dõi lương 12 tháng của một bác sĩ</p>{% endblock %}
+
+{% block content %}
+<div class="toolbar" style="margin-bottom: 18px;">
+    <form class="filter-form" method="get">
+        <select name="doctor" class="form-control" onchange="this.form.submit()" style="min-width: 220px;">
+            <option value="">— Chọn bác sĩ —</option>
+            {% for doc in doctors %}
+            <option value="{{ doc.pk }}" {% if selected_doctor and selected_doctor.pk == doc.pk %}selected{% endif %}>{{ doc.full_name }}</option>
+            {% endfor %}
+        </select>
+        <select name="year" class="form-control" onchange="this.form.submit()">
+            {% for y in years %}
+            <option value="{{ y }}" {% if selected_year == y %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit" class="button secondary">Xem</button>
+    </form>
+    <div style="display: flex; gap: 8px;">
+        <a class="button secondary" href="{% url 'payroll:report-monthly' %}">Báo cáo tháng</a>
+        <a class="button secondary" href="{% url 'payroll:report-annual' %}">Tổng hợp năm</a>
+    </div>
+</div>
+
+{% if selected_doctor %}
+<!-- Metrics -->
+<div class="metric-grid" style="margin-bottom: 20px;">
+    <div class="metric">
+        <div class="metric-value">{{ total_converted_hours|floatformat:1 }} h</div>
+        <div class="metric-label">Tổng giờ quy đổi năm {{ selected_year }}</div>
+    </div>
+    <div class="metric">
+        <div class="metric-value" style="color: #5b21b6; font-size: 24px;">{{ total_amount|floatformat:0 }} ₫</div>
+        <div class="metric-label">Tổng tiền cả năm {{ selected_year }}</div>
+    </div>
+    <div class="metric">
+        <div class="metric-value">{{ monthly_data|length|add:0 }}</div>
+        <div class="metric-label">Có dữ liệu lương {{ monthly_data|length }} tháng</div>
+    </div>
+</div>
+
+<!-- Bar chart 12 tháng -->
+<div class="panel" style="padding: 20px; margin-bottom: 20px;">
+    <div class="chart-title" style="margin-bottom: 16px;">
+        <h2>Tiền lương theo tháng — {{ selected_doctor.full_name }} — {{ selected_year }}</h2>
+    </div>
+    <div style="width: 100%; height: 240px; position: relative;">
+        <canvas id="doctorAnnualChart"></canvas>
+    </div>
+</div>
+
+<!-- Table chi tiết 12 tháng -->
+<div class="panel">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Tháng</th>
+                <th>Mã phiếu</th>
+                <th class="text-right">Giờ quy đổi</th>
+                <th class="text-right">Tổng tiền (VNĐ)</th>
+                <th>Trạng thái</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for d in monthly_data %}
+            <tr {% if not d.payslip %}style="opacity: 0.5;"{% endif %}>
+                <td><strong>Tháng {{ d.month }}/{{ selected_year }}</strong></td>
+                <td>
+                    {% if d.payslip %}
+                        <a href="{% url 'payroll:payslip-detail' d.payslip.pk %}">{{ d.payslip.payslip_code }}</a>
+                    {% else %}
+                        <span style="color: var(--muted);">Chưa lập phiếu</span>
+                    {% endif %}
+                </td>
+                <td class="text-right">{% if d.payslip %}{{ d.hours|floatformat:2 }} h{% else %}—{% endif %}</td>
+                <td class="text-right"><strong>{% if d.amount > 0 %}{{ d.amount|floatformat:0 }} ₫{% else %}—{% endif %}</strong></td>
+                <td>
+                    {% if d.payslip %}
+                        {% if d.payslip.status == "draft" %}<span class="badge badge-muted">Nháp</span>
+                        {% elif d.payslip.status == "confirmed" %}<span class="badge badge-success">Xác nhận</span>
+                        {% else %}<span class="badge badge-primary">Đã TT</span>{% endif %}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if d.payslip %}
+                        <a class="button secondary small" href="{% url 'payroll:payslip-detail' d.payslip.pk %}">Xem</a>
+                    {% else %}
+                        <a class="button small" href="{% url 'payroll:payslip-generate' %}?doctor={{ selected_doctor.pk }}&month={{ d.month }}&year={{ selected_year }}">Lập</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="3" style="text-align: right; font-weight: 700; padding: 12px 16px;">Tổng năm {{ selected_year }}</td>
+                <td class="text-right" style="font-weight: 700; font-size: 16px; color: #5b21b6;">{{ total_amount|floatformat:0 }} ₫</td>
+                <td colspan="2"></td>
+            </tr>
+        </tfoot>
+    </table>
+</div>
+{% else %}
+<div class="panel" style="padding: 40px; text-align: center; color: var(--muted);">
+    <p style="font-size: 18px; margin: 0;">Vui lòng chọn bác sĩ để xem báo cáo.</p>
+</div>
+{% endif %}
+
+{% if selected_doctor %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const ctx = document.getElementById('doctorAnnualChart').getContext('2d');
+        
+        // Create premium gradient fill
+        const gradient = ctx.createLinearGradient(0, 0, 0, 220);
+        gradient.addColorStop(0, 'rgba(142, 132, 216, 0.4)');
+        gradient.addColorStop(1, 'rgba(142, 132, 216, 0.01)');
+        
+        const doctorAnnualChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: ["T1", "T2", "T3", "T4", "T5", "T6", "T7", "T8", "T9", "T10", "T11", "T12"],
+                datasets: [{
+                    label: 'Lương thực nhận',
+                    data: [{% for d in monthly_data %}{{ d.amount|floatformat:0 }},{% endfor %}],
+                    borderColor: '#8e84d8',
+                    borderWidth: 2.5,
+                    backgroundColor: gradient,
+                    fill: true,
+                    tension: 0.35,
+                    pointBackgroundColor: '#ffffff',
+                    pointBorderColor: '#8e84d8',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    pointHoverBackgroundColor: '#8e84d8',
+                    pointHoverBorderColor: '#ffffff',
+                    pointHoverBorderWidth: 2
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let val = context.parsed.y;
+                                return ' Lương: ' + new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(val);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return new Intl.NumberFormat('vi-VN', { notation: 'compact' }).format(value);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    });
+</script>
+{% endif %}
+{% endblock %}
